@@ -1,0 +1,6 @@
+matplotlib==3.3.2
+numpy==1.18.5
+opencv-python==4.4.0.44
+pdbpp==0.10.2
+tensorboard==2.3.0
+tensorflow-gpu==2.3.0
