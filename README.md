@@ -29,7 +29,8 @@ tensorboard --logdir=log/store
 ```
 
 ## Result
-The following figure illustrates the result of the training image after 60 epochs, the first row is the ground truth (left:input, middle:boundary, right:room-type), the second row is the generated results. However, the result is not yet postprocessed, so the colors do not represent the classes, the edges are not smooth and the same area does not only show one class. <br>
+The following top left figure illustrates the result of the training image after 60 epochs, the first row is the ground truth (left:input, middle:boundary, right:room-type), the second row is the generated results. However, the result is not yet postprocessed, so the colors do not represent the classes, the edges are not smooth and the same area does not only show one class. <br>
+The remaining figures are the graphs of total loss, loss for boundary and loss for room.
 <img src="resources/epoch60.png" width="40%">
 <img src="resources/Loss.png" width="40%">
 <img src="resources/LossB.png" width="40%">
