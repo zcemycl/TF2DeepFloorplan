@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import pdb
+import os
 
 def convert_one_hot_to_image(one_hot,dtype='float',act=None):
     if act=='softmax':
@@ -39,7 +40,7 @@ def preprocess(img,bound,room,size=512):
 
 
 def loadDataset(size=512):
-    raw_dataset = tf.data.TFRecordDataset('./dataset/r3d.tfrecords')
+    raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/r3d.tfrecords'))
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
 
