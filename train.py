@@ -21,6 +21,8 @@ def init(config):
 
 def plot_to_image(figure):
     buf = io.BytesIO()
+   # buf='/d2/studies/TF2DeepFloorplan'
+   # imdir = os.path.join(buf, 'Image.png')
     plt.savefig(buf, format='png')
     plt.close(figure)
     buf.seek(0)
@@ -40,7 +42,8 @@ def image_grid(img,bound,room,logr,logcw):
 def main(config):
     # initialization
     logdir=config['logdir']
-    writer = tf.summary.create_file_writer(logdir); pltiter = 0
+    writer = tf.summary.create_file_writer(logdir) 
+    pltiter = 0
     dataset,model,optim = init(config)
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
@@ -68,6 +71,7 @@ def main(config):
             if pltiter%config['saveTensorInterval'] == 0:
                 f = image_grid(img,bound,room,logits_r,logits_cw)
                 im = plot_to_image(f)
+
                 with writer.as_default():
                     tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
                     tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
@@ -80,7 +84,7 @@ def main(config):
         if epoch%config['saveModelInterval'] == 0:
             model.save_weights(logdir+'/G')
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
-                                                 save_weights_only=True,
+                                                 save_weights_only=False,
                                                  verbose=1)
             print('[INFO] Saving Model ...')
 
