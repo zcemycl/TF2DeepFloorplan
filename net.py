@@ -7,6 +7,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
+from tensorflow.keras.models import load_model
 #print('Is gpu available: ',tf.test.is_gpu_available());
 
 def conv2d(dim,size=3,stride=1,rate=1,pad='same',act='relu'):
