@@ -6,6 +6,7 @@ from loss import *
 from data import *
 import argparse
 import os
+from PIL import Image
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -19,13 +20,13 @@ def init(config):
     optim = tf.keras.optimizers.Adam(learning_rate=config['lr'])
     return dataset,model,optim
 
-def plot_to_image(figure):
+def plot_to_image(figure, pltiter, directory):
     buf = io.BytesIO()
-   # buf='/d2/studies/TF2DeepFloorplan'
-   # imdir = os.path.join(buf, 'Image.png')
     plt.savefig(buf, format='png')
     plt.close(figure)
     buf.seek(0)
+    imSave = Image.open(buf)
+    imSave.save(os.path.join(directory, str(pltiter) + '.png'))
     image = tf.image.decode_png(buf.getvalue(), channels=4)
     image = tf.expand_dims(image, 0)
     return image
@@ -45,6 +46,8 @@ def main(config):
     writer = tf.summary.create_file_writer(logdir) 
     pltiter = 0
     dataset,model,optim = init(config)
+    if not os.path.exists(config['outdir']):
+        os.mkdir(config['outdir'])
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
         latest = tf.train.latest_checkpoint(config['restore'])
@@ -70,7 +73,7 @@ def main(config):
             # plot progress
             if pltiter%config['saveTensorInterval'] == 0:
                 f = image_grid(img,bound,room,logits_r,logits_cw)
-                im = plot_to_image(f)
+                im = plot_to_image(f, pltiter, config['outdir'])
 
                 with writer.as_default():
                     tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
@@ -100,6 +103,7 @@ if __name__ == "__main__":
     p.add_argument('--saveTensorInterval',type=int,default=10)
     p.add_argument('--saveModelInterval',type=int,default=20)
     p.add_argument('--restore',type=str,default=None)
+    p.add_argument('--outdir',type=str,default='./out')
     args = p.parse_args()
     main(args)
 
