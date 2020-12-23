@@ -39,7 +39,7 @@ def preprocess(img,bound,room,size=512):
 
 
 def loadDataset(size=512):
-    raw_dataset = tf.data.TFRecordDataset('r3d.tfrecords')
+    raw_dataset = tf.data.TFRecordDataset('./dataset/r3d.tfrecords')
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
 

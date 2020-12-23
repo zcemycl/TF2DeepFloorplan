@@ -9,10 +9,14 @@ import os
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
-    dataset = loadDataset()
+   # if config['restore'] is not None:
+   #     print("Loading pre-trained model from {}".format(config['logdir']))
+   #     model=load_model(config['restore'])
+    #else:
     model = deepfloorplanModel()
+    dataset = loadDataset()
     #optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,weight_decay=config.wd)
-    optim = tf.keras.optimizers.Adam(learning_rate=config.lr)
+    optim = tf.keras.optimizers.Adam(learning_rate=config['lr'])
     return dataset,model,optim
 
 def plot_to_image(figure):
@@ -35,12 +39,18 @@ def image_grid(img,bound,room,logr,logcw):
 
 def main(config):
     # initialization
-    writer = tf.summary.create_file_writer(config.logdir); pltiter = 0
+    logdir=config['logdir']
+    writer = tf.summary.create_file_writer(logdir); pltiter = 0
     dataset,model,optim = init(config)
+    if config['restore'] is not None:
+        print("Loading weights from {}".format(config['restore']))
+        latest = tf.train.latest_checkpoint(config['restore'])
+        model.load_weights(latest)
+
     # training loop
-    for epoch in range(config.epochs):
+    for epoch in range(config['epochs']):
         print('[INFO] Epoch {}'.format(epoch))
-        for data in list(dataset.shuffle(400).batch(config.batchsize)):
+        for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
             img,bound,room,hb,hr = preprocess(img,bound,room)
@@ -55,7 +65,7 @@ def main(config):
             optim.apply_gradients(zip(grads,model.trainable_weights))
 
             # plot progress
-            if pltiter%config.saveTensorInterval == 0:
+            if pltiter%config['saveTensorInterval'] == 0:
                 f = image_grid(img,bound,room,logits_r,logits_cw)
                 im = plot_to_image(f)
                 with writer.as_default():
@@ -67,8 +77,11 @@ def main(config):
             pltiter += 1
 
         # save model
-        if epoch%config.saveModelInterval == 0:
-            model.save_weights(config.logdir+'/G')
+        if epoch%config['saveModelInterval'] == 0:
+            model.save_weights(logdir+'/G')
+            tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
+                                                 save_weights_only=True,
+                                                 verbose=1)
             print('[INFO] Saving Model ...')
 
     pdb.set_trace()
@@ -82,6 +95,7 @@ if __name__ == "__main__":
     p.add_argument('--logdir',type=str,default='log/store')
     p.add_argument('--saveTensorInterval',type=int,default=10)
     p.add_argument('--saveModelInterval',type=int,default=20)
+    p.add_argument('--restore',type=str,default=None)
     args = p.parse_args()
     main(args)
 
