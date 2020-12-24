@@ -154,7 +154,7 @@ def main(config):
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
-            print('[INFO] Saving Model ...')
+            print('[INFO] Saving Model, loss ' + str(loss))
 
   #  pdb.set_trace() #this is for debugging and is not needed
 
