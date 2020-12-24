@@ -11,6 +11,25 @@ from tensorflow.keras.models import load_model
 #print('Is gpu available: ',tf.test.is_gpu_available());
 
 def conv2d(dim,size=3,stride=1,rate=1,pad='same',act='relu'):
+    """Creates a 2D convolution layer.
+    
+    Parameters
+    ----------
+    dim : iterable (tuple, list-like, np.array)
+        Dimensions of the layer (your image dimensions).
+        
+    size : int (optional, default 3)
+        Kernel size.
+    stride : int (optional, default 1)
+        Forward stride.
+    pad : str (optional, default 'same')
+    act : str (optional, default 'relu')
+        Activation function of the layer. Either 'relu' or 'leaky'.
+        
+    Returns:
+    --------
+    result, keras layer activation.
+    """
     result = tf.keras.Sequential()
     result.add(
         tf.keras.layers.Conv2D(dim,size,
@@ -44,6 +63,9 @@ def up_bilinear(dim):
     return result
 
 class deepfloorplanModel(Model):
+    """Class for creation of model objects. This creates the model seen in Figure 3
+        Zeng et al.,
+    """
     def __init__(self,config=None):
         super(deepfloorplanModel,self).__init__()
         self._vgg16init()

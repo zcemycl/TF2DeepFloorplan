@@ -10,6 +10,27 @@ from PIL import Image
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
+    """Initialize the model (via net.py), load the data (via data.py) using a Keras Adam optimizer.
+    You can see other optimizer options you may want to try out at: https://keras.io/api/optimizers/.
+    The SGD optimizer is probably the most commonly used, though it seems more modern models have been
+    switching to Adam. The way it is now is probably ideal but this is something you can play with or discuss
+    in your write-up.
+    
+    Parameters
+    ----------
+    config : dict or argparse namespace
+        Dictionary of {'batchsize':2, 'lr':1e-4, 'wd':1e-5, 
+                       'epochs':1000, 'logdir':'./log/store', 
+                       'saveTensorInterval':10, 'saveModelInterval':2, 
+                       'restore':'./log/store/', 'outdir':'./out'}
+
+    Returns
+    -------
+    dataset : Tensorflow dataset.
+    model : Tensorflow model.
+    optim : Keras optimizer.
+
+    """
    # if config['restore'] is not None:
    #     print("Loading pre-trained model from {}".format(config['logdir']))
    #     model=load_model(config['restore'])
@@ -21,6 +42,17 @@ def init(config):
     return dataset,model,optim
 
 def plot_to_image(figure, pltiter, directory):
+    """Conver tensors to images.
+    
+    Parameters
+    ----------
+    figure : tensor
+        Tensorflow tensor to convert to image.
+    pltiter : int
+        Iteration to plot.
+    directory : string
+        Output directory.
+    """
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     plt.close(figure)
@@ -32,6 +64,22 @@ def plot_to_image(figure, pltiter, directory):
     return image
 
 def image_grid(img,bound,room,logr,logcw):
+    """Make figure with 4 subplots containing training data & results.
+    
+    Parameters
+    ----------
+    img : Tensor image.
+        Tensor of true image to plot
+    bound : Tensor image.
+        True Room boundaries
+    room: Tensor image.
+        Room layout
+    logr: Tensor image.
+        Predicted boundaries.
+    logcw: Tensor image
+        Predicted rooms.
+    
+    """
     figure = plt.figure()
     plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
@@ -41,6 +89,21 @@ def image_grid(img,bound,room,logr,logcw):
     return figure
 
 def main(config):
+    """Main run function.
+
+    Parameters
+    ----------
+    config : dict or argparse namespace
+        Dictionary of {'batchsize':2, 'lr':1e-4, 'wd':1e-5, 
+                       'epochs':1000, 'logdir':'./log/store', 
+                       'saveTensorInterval':10, 'saveModelInterval':2, 
+                       'restore':'./log/store/', 'outdir':'./out'}
+
+    Returns
+    -------
+    None.
+
+    """
     # initialization
     logdir=config['logdir']
     writer = tf.summary.create_file_writer(logdir) 
@@ -48,6 +111,8 @@ def main(config):
     dataset,model,optim = init(config)
     if not os.path.exists(config['outdir']):
         os.mkdir(config['outdir'])
+    
+    #load weights from previous training if re-starting
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
         latest = tf.train.latest_checkpoint(config['restore'])
@@ -89,9 +154,9 @@ def main(config):
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
-            print('[INFO] Saving Model ...')
+            print('[INFO] Saving Model, loss ' + str(loss))
 
-    pdb.set_trace()
+  #  pdb.set_trace() #this is for debugging and is not needed
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
