@@ -41,7 +41,7 @@ def init(config):
     optim = tf.keras.optimizers.Adam(learning_rate=config['lr'])
     return dataset,model,optim
 
-def plot_to_image(figure, pltiter, directory):
+def plot_to_image(figure, pltiter, directory, save=False):
     """Conver tensors to images.
     
     Parameters
@@ -58,7 +58,8 @@ def plot_to_image(figure, pltiter, directory):
     plt.close(figure)
     buf.seek(0)
     imSave = Image.open(buf)
-    imSave.save(os.path.join(directory, str(pltiter) + '.png'))
+    if save:
+        imSave.save(os.path.join(directory, str(pltiter) + '.png'))
     image = tf.image.decode_png(buf.getvalue(), channels=4)
     image = tf.expand_dims(image, 0)
     return image
@@ -109,8 +110,9 @@ def main(config):
     writer = tf.summary.create_file_writer(logdir) 
     pltiter = 0
     dataset,model,optim = init(config)
-    if not os.path.exists(config['outdir']):
-        os.mkdir(config['outdir'])
+    if config['outdir'] is not None:
+        if not os.path.exists(config['outdir']):
+            os.mkdir(config['outdir'])
     
     #load weights from previous training if re-starting
     if config['restore'] is not None:
@@ -120,7 +122,6 @@ def main(config):
 
     # training loop
     for epoch in range(config['epochs']):
-        print('[INFO] Epoch {}'.format(epoch))
         for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
@@ -134,18 +135,19 @@ def main(config):
             # backward
             grads = tape.gradient(loss,model.trainable_weights)
             optim.apply_gradients(zip(grads,model.trainable_weights))
-
+        
             # plot progress
-            if pltiter%config['saveTensorInterval'] == 0:
-                f = image_grid(img,bound,room,logits_r,logits_cw)
-                im = plot_to_image(f, pltiter, config['outdir'])
-
-                with writer.as_default():
-                    tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
-                    tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
-                    tf.summary.scalar("LossB",loss2.numpy(),step=pltiter)
-                    tf.summary.image("Data",im,step=pltiter)
-                writer.flush()
+            if config['outdir'] is not None:
+                if pltiter%config['saveTensorInterval'] == 0:
+                    f = image_grid(img,bound,room,logits_r,logits_cw)
+                    im = plot_to_image(f, pltiter, config['outdir'], save=True)
+    
+                    with writer.as_default():
+                        tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
+                        tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
+                        tf.summary.scalar("LossB",loss2.numpy(),step=pltiter)
+                        tf.summary.image("Data",im,step=pltiter)
+                    writer.flush()
             pltiter += 1
 
         # save model
@@ -154,8 +156,9 @@ def main(config):
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
-            print('[INFO] Saving Model, loss ' + str(loss))
-
+            print('[INFO] Saving Model')
+        print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss))
+       
   #  pdb.set_trace() #this is for debugging and is not needed
 
 if __name__ == "__main__":
