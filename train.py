@@ -122,7 +122,6 @@ def main(config):
 
     # training loop
     for epoch in range(config['epochs']):
-        print('[INFO] Epoch {}'.format(epoch))
         for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
@@ -136,7 +135,7 @@ def main(config):
             # backward
             grads = tape.gradient(loss,model.trainable_weights)
             optim.apply_gradients(zip(grads,model.trainable_weights))
-
+        
             # plot progress
             if config['outdir'] is not None:
                 if pltiter%config['saveTensorInterval'] == 0:
@@ -157,8 +156,9 @@ def main(config):
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
-            print('[INFO] Saving Model, loss ' + str(loss))
-
+            print('[INFO] Saving Model')
+        print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss))
+       
   #  pdb.set_trace() #this is for debugging and is not needed
 
 if __name__ == "__main__":
