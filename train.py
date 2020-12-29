@@ -6,7 +6,9 @@ from loss import *
 from data import *
 import argparse
 import os
+import pandas as pd
 from PIL import Image
+from datetime import datetime
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -42,7 +44,7 @@ def init(config):
     return dataset,model,optim
 
 def plot_to_image(figure, pltiter, directory, save=False):
-    """Conver tensors to images.
+    """Convert tensors to images.
     
     Parameters
     ----------
@@ -113,7 +115,9 @@ def main(config):
     if config['outdir'] is not None:
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
-    
+    losses1=[]
+    losses2=[]
+    totalLosses=[]
     #load weights from previous training if re-starting
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
@@ -157,8 +161,15 @@ def main(config):
                                                  save_weights_only=False,
                                                  verbose=1)
             print('[INFO] Saving Model')
-        print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss))
-       
+        print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss) + ' roomTypeLoss: '  + str(loss1) + ' roomBoundLoss' + str(loss2))
+        losses1.append(loss1)
+        losses2.append(loss2)
+        totalLosses.append(loss)
+        now = datetime.now()
+        now = str(now).split(' ')[0]
+        df = pd.DataFrame([loss1, loss2, totalLosses]).T
+        df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
+        df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
   #  pdb.set_trace() #this is for debugging and is not needed
 
 if __name__ == "__main__":
