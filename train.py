@@ -9,6 +9,7 @@ import os
 import pandas as pd
 from PIL import Image
 from datetime import datetime
+from skimage.io import imread, imsave
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -66,7 +67,7 @@ def plot_to_image(figure, pltiter, directory, save=False):
     image = tf.expand_dims(image, 0)
     return image
 
-def image_grid(img,bound,room,logr,logcw):
+def image_grid(img,bound,room,logr,logcw, pltiter, outdir):
     """Make figure with 4 subplots containing training data & results.
     
     Parameters
@@ -84,12 +85,30 @@ def image_grid(img,bound,room,logr,logcw):
     
     """
     figure = plt.figure()
-    plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    plt.subplot(2,3,3);plt.imshow(room[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    plt.subplot(2,3,5);plt.imshow(convert_one_hot_to_image(logcw)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    plt.subplot(2,3,6);plt.imshow(convert_one_hot_to_image(logr)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
+    ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
+    extent1 = ax1.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
+    figure.savefig(outdir + '/' + str(pltiter) + '_image.png', bbox_inches=extent1)
+    ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
+    extent2 = ax2.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
+    figure.savefig(outdir + '/' + str(pltiter) + '_bounds.png', bbox_inches=extent2)
+    ax3 = plt.subplot(2,3,3);plt.imshow(room[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
+    extent3 = ax3.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
+    figure.savefig(outdir + '/' + str(pltiter) + '_rooms.png', bbox_inches=extent3)
+    ax4 = plt.subplot(2,3,5);plt.imshow(convert_one_hot_to_image(logcw)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
+    extent4 = ax4.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
+    figure.savefig(outdir + '/' + str(pltiter) + '_logcw.png', bbox_inches=extent4)
+    ax5 = plt.subplot(2,3,6);plt.imshow(convert_one_hot_to_image(logr)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
+    extent5 = ax4.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
+    figure.savefig(outdir + '/' + str(pltiter) + '_logr.png', bbox_inches=extent5)
     return figure
+
+def image_single(img, bound, room, logr, logcw):
+    im = plt.imshow(img[0].numpy())
+    imsave('image.png', im)
+  #  imsave('bound.png', bound[0].numpy())
+  #  imsave('room.png', room[0].numpy())
+  #  imsave('roomTypes.png', logr[0].numpy())
+  #  imsave('entries.png', logcw[0].numpy())
 
 def main(config):
     """Main run function.
@@ -143,8 +162,9 @@ def main(config):
             # plot progress
             if config['outdir'] is not None:
                 if pltiter%config['saveTensorInterval'] == 0:
-                    f = image_grid(img,bound,room,logits_r,logits_cw)
+                    f = image_grid(img,bound,room,logits_r,logits_cw, pltiter, config['outdir'])
                     im = plot_to_image(f, pltiter, config['outdir'], save=True)
+           #         image_single(img, bound,room,logits_r,logits_cw)
     
                     with writer.as_default():
                         tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
