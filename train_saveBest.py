@@ -118,6 +118,7 @@ def main(config):
     losses1=[]
     losses2=[]
     totalLosses=[]
+
     best_loss=999999
     #load weights from previous training if re-starting
     if config['restore'] is not None:
@@ -156,9 +157,13 @@ def main(config):
             pltiter += 1
 
         # save model
+
+        if epoch%config['saveModelInterval'] == 0:
+
         #if epoch%config['saveModelInterval'] == 0:
         if loss < best_loss:
             best_loss = loss
+
             model.save_weights(logdir+'/G')
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
