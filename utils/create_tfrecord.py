@@ -5,7 +5,7 @@ makesure the path is match to the train_file/test_file.
 
 from utils.tf_record import *
 
-train_file = '../dataset/r2v_train.txt'
+train_file = '/d2/studies/TF2DeepFloorplan/dataset/r3d_train.txt'
 test_file = '/d2/studies/TF2DeepFloorplan/dataset/r3d_test.txt'
 
 # debug
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	# write_seg_record(train_paths, name='../dataset/newyork_seg_train.tfrecords')
 
 	write_bd_rm_record(test_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_test.tfrecords')
-	# write_bd_rm_record(train_paths, name='../dataset/all_train3.tfrecords')
+	write_bd_rm_record(train_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_train.tfrecords')
 
 	# read from TFRecord
 	# loader_list = read_record('../dataset/jp_train.tfrecords')
