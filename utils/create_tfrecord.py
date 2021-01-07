@@ -3,16 +3,16 @@ Please prepare the raw image datas save to one folder,
 makesure the path is match to the train_file/test_file.
 """
 
-from tf_record import *
+from utils.tf_record import *
 
 train_file = '../dataset/r2v_train.txt'
-test_file = '../dataset/r2v_test.txt'
+test_file = '/d2/studies/TF2DeepFloorplan/dataset/r3d_test.txt'
 
 # debug
 if __name__ == '__main__':
 	# write to TFRecord
 	train_paths = open(train_file, 'r').read().splitlines()
-	# test_paths = open(test_file, 'r').read().splitlines()
+    test_paths = open(test_file, 'r').read().splitlines()
 
 	# write_record(train_paths, name='../dataset/jp_train.tfrecords')
 	# write_record(test_paths, name='../dataset/newyork_test.tfrecords')
@@ -20,7 +20,7 @@ if __name__ == '__main__':
 	# write_seg_record(train_paths, name='../dataset/jp_seg_train.tfrecords')
 	# write_seg_record(train_paths, name='../dataset/newyork_seg_train.tfrecords')
 
-	write_bd_rm_record(train_paths, name='../dataset/jp_train.tfrecords')
+	write_bd_rm_record(test_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_test.tfrecords')
 	# write_bd_rm_record(train_paths, name='../dataset/all_train3.tfrecords')
 
 	# read from TFRecord

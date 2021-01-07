@@ -2,9 +2,11 @@ import numpy as np
 
 import tensorflow as tf
 
-from scipy.misc import imread, imresize, imsave
+#from scipy.misc import imread, imresize, imsave
+from skimage.io import imread, imsave
+from skimage.transform import resize as imresize
 from matplotlib import pyplot as plt
-from rgb_ind_convertor import *
+from utils.rgb_ind_convertor import *
 
 import os
 import sys
@@ -14,11 +16,11 @@ import time
 def load_raw_images(path):
 	paths = path.split('\t')
 
-	image = imread(paths[0], mode='RGB')
-	wall  = imread(paths[1], mode='L')
-	close = imread(paths[2], mode='L')
-	room  = imread(paths[3], mode='RGB')
-	close_wall = imread(paths[4], mode='L')
+	image = imread(paths[0], pilmode='RGB')
+	wall  = imread(paths[1], pilmode='L')
+	close = imread(paths[2], pilmode='L')
+	room  = imread(paths[3], pilmode='RGB')
+	close_wall = imread(paths[4], pilmode='L')
 
 	# NOTE: imresize will rescale the image to range [0, 255], also cast data into uint8 or uint32
 	image = imresize(image, (512, 512, 3))
@@ -144,10 +146,10 @@ def read_record(data_path, batch_size=1, size=512):
 def load_seg_raw_images(path):
 	paths = path.split('\t')
 
-	image = imread(paths[0], mode='RGB')
-	close = imread(paths[2], mode='L')
-	room  = imread(paths[3], mode='RGB')
-	close_wall = imread(paths[4], mode='L')
+	image = imread(paths[0], pilmode='RGB')
+	close = imread(paths[2], pilmode='L')
+	room  = imread(paths[3], pilmode='RGB')
+	close_wall = imread(paths[4], pilmode='L')
 
 	# NOTE: imresize will rescale the image to range [0, 255], also cast data into uint8 or uint32
 	image = imresize(image, (512, 512, 3))
@@ -247,10 +249,10 @@ def read_seg_record(data_path, batch_size=1, size=512):
 def load_bd_rm_images(path):
 	paths = path.split('\t')
 
-	image = imread(paths[0], mode='RGB')
-	close = imread(paths[2], mode='L')
-	room  = imread(paths[3], mode='RGB')
-	close_wall = imread(paths[4], mode='L')
+	image = imread(paths[0])#, pilmode='RGB'
+	close = imread(paths[2], pilmode='L')
+	room  = imread(paths[3], pilmode='RGB')
+	close_wall = imread(paths[4], pilmode='L')
 
 	# NOTE: imresize will rescale the image to range [0, 255], also cast data into uint8 or uint32
 	image = imresize(image, (512, 512, 3))
@@ -287,7 +289,7 @@ def load_bd_rm_images(path):
 	return image, cw_ind, room_ind, d_ind
 
 def write_bd_rm_record(paths, name='dataset.tfrecords'):
-	writer = tf.python_io.TFRecordWriter(name)
+	writer = tf.compat.v1.python_io.TFRecordWriter(name)
 	
 	for i in range(len(paths)):
 		# Load the image
