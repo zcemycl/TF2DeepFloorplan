@@ -39,8 +39,11 @@ def preprocess(img,bound,room,size=512):
     return img,bound,room,hot_b,hot_r
 
 
-def loadDataset(size=512):
-    raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/r3d.tfrecords'))
+def loadDataset(size=512, train=True):
+    if train:
+        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/r3d.tfrecords'))
+    elif not train:
+        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_test.tfrecords'))
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
 

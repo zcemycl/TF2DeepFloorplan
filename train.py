@@ -39,7 +39,7 @@ def init(config):
    #     model=load_model(config['restore'])
     #else:
     model = deepfloorplanModel()
-    dataset = loadDataset()
+    dataset = loadDataset(train=config['train'])
     #optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,weight_decay=config.wd)
     optim = tf.keras.optimizers.Adam(learning_rate=config['lr'])
     return dataset,model,optim
@@ -143,15 +143,19 @@ def main(config):
         print("Loading weights from {}".format(config['restore']))
         latest = tf.train.latest_checkpoint(config['restore'])
         model.load_weights(latest)
-
+ #   graph = tf.compat.v1.get_default_graph()
     # training loop
     for epoch in range(config['epochs']):
         for data in list(dataset.shuffle(400).batch(config['batchsize'])):
+            print(data)
             # forward
             img,bound,room = decodeAllRaw(data)
             img,bound,room,hb,hr = preprocess(img,bound,room)
             with tf.GradientTape() as tape:
-                logits_r,logits_cw = model(img,training=True)
+                if config['train']==True:
+                    logits_r,logits_cw = model(img,training=True)
+                elif config['train']==False:
+                    logits_r,logits_cw = model(img,training=False)
                 loss1 = balanced_entropy(logits_r,hr)
                 loss2 = balanced_entropy(logits_cw,hb)
                 w1,w2 = cross_two_tasks_weight(hr,hb)
@@ -178,7 +182,10 @@ def main(config):
         # save model
         if loss < best_loss:
             best_loss = loss
+            if not os.path.exists(os.path.join(logdir, 'save/')):
+                os.mkdir(os.path.join(logdir, 'save/'))
             model.save_weights(logdir+'/G')
+            model.save(os.path.join(logdir, 'save/'))
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
