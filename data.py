@@ -20,7 +20,8 @@ def _parse_function(example_proto):
     feature = {'image':tf.io.FixedLenFeature([],tf.string),
               'boundary':tf.io.FixedLenFeature([],tf.string),
               'room':tf.io.FixedLenFeature([],tf.string),
-              'door':tf.io.FixedLenFeature([],tf.string)}
+              'door':tf.io.FixedLenFeature([],tf.string),
+              'zname':tf.io.FixedLenFeature([], tf.string)}
     return tf.io.parse_single_example(example_proto,feature)
 
 def decodeAllRaw(x):
@@ -31,7 +32,7 @@ def decodeAllRaw(x):
 
 def preprocess(img,bound,room,size=512):
     img = tf.cast(img,dtype=tf.float32)
-    img = tf.reshape(img,[-1,size,size,3])/255
+    img = tf.reshape(img,[-1,size,size,3])
     bound = tf.reshape(bound,[-1,size,size])
     room = tf.reshape(room,[-1,size,size])
     hot_b = tf.one_hot(bound,3,axis=-1)
@@ -41,9 +42,9 @@ def preprocess(img,bound,room,size=512):
 
 def loadDataset(size=512, train=True):
     if train:
-        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/r3d.tfrecords'))
+        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_train_withNames_4.tfrecords'))
     elif not train:
-        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_test.tfrecords'))
+        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_test_withNames_4.tfrecords'))
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
 

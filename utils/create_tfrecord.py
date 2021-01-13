@@ -11,8 +11,19 @@ test_file = '/d2/studies/TF2DeepFloorplan/dataset/r3d_test.txt'
 # debug
 if __name__ == '__main__':
 	# write to TFRecord
-	train_paths = open(train_file, 'r').read().splitlines()
+    train_paths = open(train_file, 'r').read().splitlines()
     test_paths = open(test_file, 'r').read().splitlines()
+
+    train_paths_fixed = []
+    test_paths_fixed = []
+    for path in train_paths:
+        p = path.replace('..', '/d2/studies/TF2DeepFloorplan')
+        train_paths_fixed.append(p)
+    
+    
+    for path in test_paths:
+        p = path.replace('..', '/d2/studies/TF2DeepFloorplan')
+        test_paths_fixed.append(p)
 
 	# write_record(train_paths, name='../dataset/jp_train.tfrecords')
 	# write_record(test_paths, name='../dataset/newyork_test.tfrecords')
@@ -20,8 +31,8 @@ if __name__ == '__main__':
 	# write_seg_record(train_paths, name='../dataset/jp_seg_train.tfrecords')
 	# write_seg_record(train_paths, name='../dataset/newyork_seg_train.tfrecords')
 
-	write_bd_rm_record(test_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_test.tfrecords')
-	write_bd_rm_record(train_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_train.tfrecords')
+    write_bd_rm_record(test_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_test_withNames_4.tfrecords')
+    write_bd_rm_record(train_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_train_withNames_4.tfrecords')
 
 	# read from TFRecord
 	# loader_list = read_record('../dataset/jp_train.tfrecords')

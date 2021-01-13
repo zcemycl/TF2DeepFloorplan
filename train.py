@@ -1,3 +1,5 @@
+import os
+os.chdir('/d2/studies/TF2DeepFloorplan')
 import tensorflow as tf
 import io
 import tqdm
@@ -5,11 +7,11 @@ from net import *
 from loss import *
 from data import *
 import argparse
-import os
 import pandas as pd
 from PIL import Image
 from datetime import datetime
 from skimage.io import imread, imsave
+from skimage import img_as_float
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -84,22 +86,24 @@ def image_grid(img,bound,room,logr,logcw, pltiter, outdir):
         Predicted rooms.
     
     """
+    im = img[0].numpy()
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_image.png'), im)
+    b = bound[0].numpy()
+    b = b*255
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_bounds.png'), b)
+    r = room[0].numpy()
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_rooms.png'), r)
+    lcw = convert_one_hot_to_image(logcw)[0].numpy()
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_close_walls.png'), img_as_float(lcw))
+    lr = convert_one_hot_to_image(logr)[0].numpy().astype(np.uint8)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_rooms_pred.png'), img_as_float(lr))
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    extent1 = ax1.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-    figure.savefig(outdir + '/' + str(pltiter) + '_image.png', bbox_inches=extent1)
     ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    extent2 = ax2.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-    figure.savefig(outdir + '/' + str(pltiter) + '_bounds.png', bbox_inches=extent2)
     ax3 = plt.subplot(2,3,3);plt.imshow(room[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    extent3 = ax3.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-    figure.savefig(outdir + '/' + str(pltiter) + '_rooms.png', bbox_inches=extent3)
     ax4 = plt.subplot(2,3,5);plt.imshow(convert_one_hot_to_image(logcw)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    extent4 = ax4.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-    figure.savefig(outdir + '/' + str(pltiter) + '_logcw.png', bbox_inches=extent4)
     ax5 = plt.subplot(2,3,6);plt.imshow(convert_one_hot_to_image(logr)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    extent5 = ax4.get_window_extent().transformed(figure.dpi_scale_trans.inverted())
-    figure.savefig(outdir + '/' + str(pltiter) + '_logr.png', bbox_inches=extent5)
+    figure.savefig(outdir + '/' + str(pltiter) + '_combined.png')
     return figure
 
 def image_single(img, bound, room, logr, logcw):
@@ -131,6 +135,7 @@ def main(config):
     writer = tf.summary.create_file_writer(logdir) 
     pltiter = 0
     dataset,model,optim = init(config)
+    dataset = dataset.shuffle(400)
     if config['outdir'] is not None:
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
@@ -146,8 +151,8 @@ def main(config):
  #   graph = tf.compat.v1.get_default_graph()
     # training loop
     for epoch in range(config['epochs']):
-        for data in list(dataset.shuffle(400).batch(config['batchsize'])):
-            print(data)
+    #    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
+        for data in list(dataset.batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
             img,bound,room,hb,hr = preprocess(img,bound,room)
@@ -160,15 +165,17 @@ def main(config):
                 loss2 = balanced_entropy(logits_cw,hb)
                 w1,w2 = cross_two_tasks_weight(hr,hb)
                 loss = w1*loss1+w2*loss2
-            # backward
+                # backward
             grads = tape.gradient(loss,model.trainable_weights)
             optim.apply_gradients(zip(grads,model.trainable_weights))
         
             # plot progress
             if config['outdir'] is not None:
                 if pltiter%config['saveTensorInterval'] == 0:
-                    f = image_grid(img,bound,room,logits_r,logits_cw, pltiter, config['outdir'])
-                    im = plot_to_image(f, pltiter, config['outdir'], save=True)
+                    name = data['zname']
+                    name = str(name.numpy()[0]).split("'")[-2]
+                    f = image_grid(img,bound,room,logits_r,logits_cw, name, config['outdir'])
+                    im = plot_to_image(f, name, config['outdir'], save=True)
            #         image_single(img, bound,room,logits_r,logits_cw)
     
                     with writer.as_default():
