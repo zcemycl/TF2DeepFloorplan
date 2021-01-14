@@ -14,6 +14,12 @@ import time
 from utils.util import fast_hist
 from utils.rgb_ind_convertor import *
 
+baseDirectory = '/d2/studies/TF2DeepFloorplan/'
+benchmark_path='/d2/studies/TF2DeepFloorplan/dataset/r3d_train.txt'
+result_dir='/d2/studies/TF2DeepFloorplan/outJan14_TFR3_5/50/' #change this to outdir of training
+num_of_classes=11
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--dataset', type=str, default='R3D',
@@ -22,19 +28,18 @@ parser.add_argument('--dataset', type=str, default='R3D',
 parser.add_argument('--result_dir', type=str, default='./out',
 					help='define the storage folder of network prediction')
 
+###ADD FUNCTION USING COSINE SIMILARITY TO COMPARE BOUNDARY ARRAYS & CALC ACCURACY
 
-baseDirectory = '/d2/studies/TF2DeepFloorplan/'
-benchmark_path='/d2/studies/TF2DeepFloorplan/dataset/r3d_train.txt'
-result_dir='/d2/studies/TF2DeepFloorplan/outJan13_TFR3/20/' #change this to outdir of training
-num_of_classes=11
+###ALSO ADD FUNCTION TO PARSE BOUNDARIES FROM WALLS
 
 def evaluate_semantic(benchmark_path, result_dir, num_of_classes=11, need_merge_result=False, im_downsample=False, gt_downsample=False):
     gt_paths = open(benchmark_path, 'r').read().splitlines()
     d_paths = [p.split('\t')[2] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
     r_paths = [p.split('\t')[3] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
     cw_paths = [p.split('\t')[-1] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room, last one denote close wall
-    im_paths = [os.path.join(result_dir, p.split('/')[-1]) for p in r_paths]
     im_names = [p.split('/')[-1].split('.')[0] for p in gt_paths]
+
+    im_paths = [os.path.join(result_dir, p.split('/')[-1].split('.')[0] + '_pred.png') for p in r_paths]
     if need_merge_result:
         im_paths = [os.path.join(result_dir+'/room', p.split('/')[-1]) for p in r_paths]
         d_paths = [os.path.join(result_dir+'/door', p.split('/')[-1]) for p in d_paths]
