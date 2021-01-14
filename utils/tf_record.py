@@ -257,16 +257,16 @@ def load_bd_rm_images(path):
     close_wall = imread(paths[4], pilmode='L')
 
 	# NOTE: imresize will rescale the image to range [0, 255], also cast data into uint8 or uint32
-    image = imresize(image, (512, 512, 3), preserve_range=True)
-    close = imresize(close, (512, 512), preserve_range=True) #/ 255. #added preserve_range for TFR4
-    close_wall = imresize(close_wall, (512, 512), preserve_range=True) # / 255. #Added preserve_range for TFR4
-    room = imresize(room, (512, 512, 3), preserve_range=True)
+    image = imresize(image, (512, 512, 3), mode='constant', cval=0, preserve_range=True)
+    close = imresize(close, (512, 512), mode='constant', cval=0, preserve_range=True) #/ 255. #added preserve_range for TFR4
+    close_wall = imresize(close_wall, (512, 512), mode='constant', cval=0, preserve_range=True) # / 255. #Added preserve_range for TFR4
+    room = imresize(room, (512, 512, 3), mode='constant', cval=0, preserve_range=True)
 
     room_ind = rgb2ind(room)
 
 	# merge result
-    d_ind = (close>(255/2)).astype(np.uint8)#Changed close>0.5 to close>(255/2) for TFRecords_4
-    cw_ind = (close_wall>(255/2)).astype(np.uint8)#Changed close>0.5 to close>(255/2) for TFRecords_4
+    d_ind = (close>0.5).astype(np.uint8)#Changed close>0.5 to close>(255/2) for TFRecords_4
+    cw_ind = (close_wall>0.5).astype(np.uint8)#Changed close>0.5 to close>(255/2) for TFRecords_4
 
     cw_ind[cw_ind==1] = 2
     cw_ind[d_ind==1] = 1

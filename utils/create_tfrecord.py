@@ -31,8 +31,8 @@ if __name__ == '__main__':
 	# write_seg_record(train_paths, name='../dataset/jp_seg_train.tfrecords')
 	# write_seg_record(train_paths, name='../dataset/newyork_seg_train.tfrecords')
 
-    write_bd_rm_record(test_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_test_withNames_4.tfrecords')
-    write_bd_rm_record(train_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_train_withNames_4.tfrecords')
+    write_bd_rm_record(test_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_test_withNames_6.tfrecords')
+    write_bd_rm_record(train_paths, name='/d2/studies/TF2DeepFloorplan/dataset/NY_train_withNames_6.tfrecords')
 
 	# read from TFRecord
 	# loader_list = read_record('../dataset/jp_train.tfrecords')

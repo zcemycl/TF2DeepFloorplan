@@ -31,7 +31,7 @@ def decodeAllRaw(x):
     return image,boundary,room
 
 def preprocess(img,bound,room,size=512):
-    img = tf.cast(img,dtype=tf.float32)
+    img = tf.cast(img,dtype=tf.float32)/255
     img = tf.reshape(img,[-1,size,size,3])
     bound = tf.reshape(bound,[-1,size,size])
     room = tf.reshape(room,[-1,size,size])
@@ -42,9 +42,9 @@ def preprocess(img,bound,room,size=512):
 
 def loadDataset(size=512, train=True):
     if train:
-        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_train_withNames_4.tfrecords'))
+        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_train_withNames_5.tfrecords'))
     elif not train:
-        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_test_withNames_4.tfrecords'))
+        raw_dataset = tf.data.TFRecordDataset(os.path.join(os.getcwd(),'dataset/NY_test_withNames_5.tfrecords'))
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
 

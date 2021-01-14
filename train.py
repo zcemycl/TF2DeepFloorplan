@@ -12,6 +12,7 @@ from PIL import Image
 from datetime import datetime
 from skimage.io import imread, imsave
 from skimage import img_as_float
+import matplotlib.pyplot as plt
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -46,7 +47,7 @@ def init(config):
     optim = tf.keras.optimizers.Adam(learning_rate=config['lr'])
     return dataset,model,optim
 
-def plot_to_image(figure, pltiter, directory, save=False):
+def plot_to_image(figure, pltiter, name, directory, save=False):
     """Convert tensors to images.
     
     Parameters
@@ -64,12 +65,12 @@ def plot_to_image(figure, pltiter, directory, save=False):
     buf.seek(0)
     imSave = Image.open(buf)
     if save:
-        imSave.save(os.path.join(directory, str(pltiter) + '.png'))
+        imSave.save(os.path.join(directory, str(pltiter) + '/' + name + '.png'))
     image = tf.image.decode_png(buf.getvalue(), channels=4)
     image = tf.expand_dims(image, 0)
     return image
 
-def image_grid(img,bound,room,logr,logcw, pltiter, outdir):
+def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     """Make figure with 4 subplots containing training data & results.
     
     Parameters
@@ -86,17 +87,19 @@ def image_grid(img,bound,room,logr,logcw, pltiter, outdir):
         Predicted rooms.
     
     """
+    if not os.path.exists(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/')):
+        os.mkdir(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/'))
     im = img[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_image.png'), im)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_image.png'), im)
     b = bound[0].numpy()
     b = b*255
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_bounds.png'), b)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_bounds.png'), b)
     r = room[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_rooms.png'), r)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), r.astype(np.uint8))
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_close_walls.png'), img_as_float(lcw))
-    lr = convert_one_hot_to_image(logr)[0].numpy().astype(np.uint8)
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '_rooms_pred.png'), img_as_float(lr))
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw))
+    lr = convert_one_hot_to_image(logr, dtype='int')[0].numpy().astype(np.uint8)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), lr)
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
@@ -104,6 +107,7 @@ def image_grid(img,bound,room,logr,logcw, pltiter, outdir):
     ax4 = plt.subplot(2,3,5);plt.imshow(convert_one_hot_to_image(logcw)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax5 = plt.subplot(2,3,6);plt.imshow(convert_one_hot_to_image(logr)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     figure.savefig(outdir + '/' + str(pltiter) + '_combined.png')
+    plt.close()
     return figure
 
 def image_single(img, bound, room, logr, logcw):
@@ -135,7 +139,7 @@ def main(config):
     writer = tf.summary.create_file_writer(logdir) 
     pltiter = 0
     dataset,model,optim = init(config)
-    dataset = dataset.shuffle(400)
+  #  dataset = dataset.shuffle(400)
     if config['outdir'] is not None:
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
@@ -152,7 +156,7 @@ def main(config):
     # training loop
     for epoch in range(config['epochs']):
     #    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
-        for data in list(dataset.batch(config['batchsize'])):
+        for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
             img,bound,room,hb,hr = preprocess(img,bound,room)
@@ -168,23 +172,23 @@ def main(config):
                 # backward
             grads = tape.gradient(loss,model.trainable_weights)
             optim.apply_gradients(zip(grads,model.trainable_weights))
-        
+    
             # plot progress
             if config['outdir'] is not None:
                 if pltiter%config['saveTensorInterval'] == 0:
                     name = data['zname']
                     name = str(name.numpy()[0]).split("'")[-2]
-                    f = image_grid(img,bound,room,logits_r,logits_cw, name, config['outdir'])
-                    im = plot_to_image(f, name, config['outdir'], save=True)
-           #         image_single(img, bound,room,logits_r,logits_cw)
-    
-                    with writer.as_default():
-                        tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
-                        tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
-                        tf.summary.scalar("LossB",loss2.numpy(),step=pltiter)
-                        tf.summary.image("Data",im,step=pltiter)
-                    writer.flush()
-            pltiter += 1
+                    f = image_grid(img,bound,room,logits_r,logits_cw, pltiter, name, config['outdir'])
+                    im = plot_to_image(f, pltiter, name, config['outdir'], save=True)
+            #         image_single(img, bound,room,logits_r,logits_cw)
+                with writer.as_default():
+                    tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
+                    tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
+                    tf.summary.scalar("LossB",loss2.numpy(),step=pltiter)
+                    tf.summary.image("Data",im,step=pltiter)
+                writer.flush()
+
+        pltiter += 1
 
         # save model
         if loss < best_loss:
