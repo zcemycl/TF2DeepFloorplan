@@ -3,13 +3,13 @@ import numpy as np
 #from scipy.misc import imread, imsave, imresize
 from skimage.io import imread, imsave
 from skimage.transform import resize as imresize
-
+from scipy.spatial.distance import cosine
 import os
 os.chdir('/d2/studies/TF2DeepFloorplan')
 import sys
 import glob
 import time
-
+import pandas as pd
 #sys.path.append('./utils/')
 from utils.util import fast_hist
 from utils.rgb_ind_convertor import *
@@ -28,17 +28,83 @@ parser.add_argument('--dataset', type=str, default='R3D',
 parser.add_argument('--result_dir', type=str, default='./out',
 					help='define the storage folder of network prediction')
 
-###ADD FUNCTION USING COSINE SIMILARITY TO COMPARE BOUNDARY ARRAYS & CALC ACCURACY
 
 ###ALSO ADD FUNCTION TO PARSE BOUNDARIES FROM WALLS
 
+def evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=True, gt_resize=True, train=False):
+    """
+
+    Parameters
+    ----------
+    benchmark_path : string
+        Path to .txt file containing dataset paths.
+    result_dir : string
+        Directory containing result images to evaluate.
+    num_of_classes : int, optional
+        Number of room classes. The default is 11.
+    im_resize : boolean, optional
+        Whether to resize result images to 512x512. The default is True.
+    gt_resize : boolean, optional
+        Whether to resize ground truth images to 512x512. The default is True.
+    train : boolean, optional
+        Whether to evaluate training data or test data. The default is False.
+
+    Returns
+    -------
+    None.
+
+    """
+    gt_paths = open(benchmark_path, 'r').read().splitlines()
+    d_paths = [p.split('\t')[2] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
+    r_paths = [p.split('\t')[3] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
+    cw_paths = [p.split('\t')[-1] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room, last one denote close wall
+    im_names = [p.split('/')[-1].split('.')[0] for p in gt_paths]
+    im_paths = [os.path.join(result_dir, p.split('/')[-1].split('.')[0] + '_pred.png') for p in r_paths]
+    data_dir = os.path.dirname(benchmark_path)
+    sims=[]
+    names = []
+    for i in range(len(im_paths)):
+        try:
+            res_im  = imread(im_paths[i], pilmode='RGB')
+            name = os.path.basename(im_paths[i]).split('_')[0]
+            if train:
+                gt_im = imread(os.path.join(data_dir, 'newyork/train/' + name + '_multi.png'), pilmode='RGB')
+                gt_im_ind = rgb2ind(gt_im, color_map=floorplan_fuse_map) 
+            elif not train:
+                gt_im = imread(os.path.join(data_dir, 'newyork/test/' + name + '_multi.png'))
+                gt_im_ind = rgb2ind(im, color_map=floorplan_fuse_map)
+                
+            if im_resize:
+                res_im = imresize(res_im, (512,512,3), mode='constant', cval=0, preserve_range=True)
+            if gt_resize:
+                gt_im_ind = imresize(gt_im_ind, (512,512,3), mode='constant', cval=0, preserve_range=True)
+            res_im_1d = res_im.flatten()
+            gt_im_1d = gt_im_ind.flatten()
+            res_im_1d = res_im_1d + 1e-6
+            gt_im_1d = gt_im_1d + 1e-6
+            sim = cosine(res_im_1d, gt_im_1d)
+            print("Image " + str(name) + " similarity " + str(sim))
+            sims.append(sim)
+            names.append(name)
+        except FileNotFoundError:
+            pass
+    df = pd.DataFrame([names, sims]).T
+    df.columns=['image', 'similarity']
+    df.sort_values(by='similarity', inplace=True, ascending=False)
+    df.reset_index(drop=True, inplace=True)
+    df.to_csv('Cosine_Similarity_Results.csv')
+    aveSim = np.mean(sims)
+    print("Average cosine similarity " + str(aveSim))
+    return df
+                
+#evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=True, gt_resize=True, train=True)             
+                
 def evaluate_semantic(benchmark_path, result_dir, num_of_classes=11, need_merge_result=False, im_downsample=False, gt_downsample=False):
     gt_paths = open(benchmark_path, 'r').read().splitlines()
     d_paths = [p.split('\t')[2] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
     r_paths = [p.split('\t')[3] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
     cw_paths = [p.split('\t')[-1] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room, last one denote close wall
     im_names = [p.split('/')[-1].split('.')[0] for p in gt_paths]
-
     im_paths = [os.path.join(result_dir, p.split('/')[-1].split('.')[0] + '_pred.png') for p in r_paths]
     if need_merge_result:
         im_paths = [os.path.join(result_dir+'/room', p.split('/')[-1]) for p in r_paths]

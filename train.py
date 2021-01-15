@@ -92,8 +92,9 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     im = img[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_image.png'), im)
     b = bound[0].numpy()
-    b = b*255
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_bounds.png'), b)
+    ents = identify_bounds(bound[0].numpy())
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), ents)
     r = room[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), r.astype(np.uint8))
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
@@ -127,7 +128,7 @@ def main(config):
         Dictionary of {'batchsize':2, 'lr':1e-4, 'wd':1e-5, 
                        'epochs':1000, 'logdir':'./log/store', 
                        'saveTensorInterval':10, 'saveModelInterval':2, 
-                       'restore':'./log/store/', 'outdir':'./out'}
+                       'restore':'./log/store/', 'outdir':'./out', train=True}
 
     Returns
     -------
@@ -202,12 +203,12 @@ def main(config):
                                                  verbose=1)
             print('[INFO] Saving Model')
         print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss) + ' roomTypeLoss: '  + str(loss1) + ' roomBoundLoss' + str(loss2))
-        losses1.append(loss1)
-        losses2.append(loss2)
-        totalLosses.append(loss)
+        losses1.append(loss1.numpy()[0])
+        losses2.append(loss2.numpy()[0])
+        totalLosses.append(loss.numpy()[0])
         now = datetime.now()
         now = str(now).split(' ')[0]
-        df = pd.DataFrame([loss1, loss2, totalLosses]).T
+        df = pd.DataFrame([losses1, losses2, totalLosses]).T
         df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
         df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
   #  pdb.set_trace() #this is for debugging and is not needed

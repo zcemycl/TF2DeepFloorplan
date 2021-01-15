@@ -48,6 +48,9 @@ def loadDataset(size=512, train=True):
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
 
+def identify_bounds(bound):
+    return bound==1
+
 
 if __name__ == "__main__":
     dataset = loadDataset()
