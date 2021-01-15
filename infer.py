@@ -142,9 +142,9 @@ def infer(config):
     if config['outdir'] is not None:
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
-    if config['restore'] is not None:
-        print("Loading weights from {}".format(config['restore']))
-        latest = tf.train.latest_checkpoint(config['restore'])
+    if config['checkpoint'] is not None:
+        print("Loading weights from {}".format(config['checkpoint']))
+        latest = tf.train.latest_checkpoint(config['checkpoint'])
         model.load_weights(latest)
     for data in list(dataset.shuffle(400).batch(config['batchsize'])):
         img = decodeRawInfer(data)
@@ -159,6 +159,7 @@ def infer(config):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument('--batchsize',type=int,default=1)
+    p.add_argument('--lr',type=float,default=1e-4)
     p.add_argument('--logdir',type=str,default='log/store')
     p.add_argument('--checkpoint',type=str,default=None)
     p.add_argument('--outdir',type=str,default='./out')
