@@ -7,7 +7,7 @@ Created on Fri Jan 15 11:34:09 2021
 """
 
 import os
-os.chdir('/d2/studies/TF2DeepFloorplan')
+#os.chdir('/d2/studies/TF2DeepFloorplan')
 import tensorflow as tf
 import io
 import tqdm
