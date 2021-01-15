@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jan 15 11:34:09 2021
+
+@author: smith
+"""
+
 import os
 os.chdir('/d2/studies/TF2DeepFloorplan')
 import tensorflow as tf
@@ -70,7 +78,7 @@ def plot_to_image(figure, pltiter, name, directory, save=False):
     image = tf.expand_dims(image, 0)
     return image
 
-def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
+def infer_image_grid(img,logr,logcw, pltiter, name, outdir):
     """Make figure with 4 subplots containing training data & results.
     
     Parameters
@@ -91,35 +99,26 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
         os.mkdir(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/'))
     im = img[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_image.png'), im)
-    b = bound[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_bounds.png'), b)
-    ents = identify_bounds(bound[0].numpy())
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), ents)
-    r = room[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), r.astype(np.uint8))
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw))
+    ents = identify_bounds(lcw)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), ents)
     lr = convert_one_hot_to_image(logr, dtype='int')[0].numpy().astype(np.uint8)
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), lr)
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    ax3 = plt.subplot(2,3,3);plt.imshow(room[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax4 = plt.subplot(2,3,5);plt.imshow(convert_one_hot_to_image(logcw)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax5 = plt.subplot(2,3,6);plt.imshow(convert_one_hot_to_image(logr)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     figure.savefig(outdir + '/' + str(pltiter) + '_combined.png')
     plt.close()
     return figure
 
-def image_single(img, bound, room, logr, logcw):
-    im = plt.imshow(img[0].numpy())
-    imsave('image.png', im)
-  #  imsave('bound.png', bound[0].numpy())
-  #  imsave('room.png', room[0].numpy())
-  #  imsave('roomTypes.png', logr[0].numpy())
-  #  imsave('entries.png', logcw[0].numpy())
 
-def main(config):
+config = {'batchsize':1, 'logdir':'./log/Jan15_TFR5_TEST', 'checkpoint':'./log/Jan14_TFR5', 
+          'outdir':'./outJan15_TFR5_TEST', 'train':False}
+
+
+def infer(config):
     """Main run function.
 
     Parameters
@@ -140,96 +139,32 @@ def main(config):
     writer = tf.summary.create_file_writer(logdir) 
     pltiter = 0
     dataset,model,optim = init(config)
-  #  dataset = dataset.shuffle(400)
     if config['outdir'] is not None:
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
-    losses1=[]
-    losses2=[]
-    totalLosses=[]
-    best_loss=999999
-    #load weights from previous training if re-starting
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
         latest = tf.train.latest_checkpoint(config['restore'])
         model.load_weights(latest)
- #   graph = tf.compat.v1.get_default_graph()
-    # training loop
-    for epoch in range(config['epochs']):
-    #    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
-        for data in list(dataset.shuffle(400).batch(config['batchsize'])):
-            # forward
-            img,bound,room = decodeAllRaw(data)
-            img,bound,room,hb,hr = preprocess(img,bound,room)
-            with tf.GradientTape() as tape:
-                if config['train']==True:
-                    logits_r,logits_cw = model(img,training=True)
-                elif config['train']==False:
-                    logits_r,logits_cw = model(img,training=False)
-                loss1 = balanced_entropy(logits_r,hr)
-                loss2 = balanced_entropy(logits_cw,hb)
-                w1,w2 = cross_two_tasks_weight(hr,hb)
-                loss = w1*loss1+w2*loss2
-                # backward
-            grads = tape.gradient(loss,model.trainable_weights)
-            optim.apply_gradients(zip(grads,model.trainable_weights))
-    
-            # plot progress
-            if config['outdir'] is not None:
-                if pltiter%config['saveTensorInterval'] == 0:
-                    name = data['zname']
-                    name = str(name.numpy()[0]).split("'")[-2]
-                    f = image_grid(img,bound,room,logits_r,logits_cw, pltiter, name, config['outdir'])
-                    im = plot_to_image(f, pltiter, name, config['outdir'], save=True)
-            #         image_single(img, bound,room,logits_r,logits_cw)
-                with writer.as_default():
-                    tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
-                    tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
-                    tf.summary.scalar("LossB",loss2.numpy(),step=pltiter)
-                    tf.summary.image("Data",im,step=pltiter)
-                writer.flush()
+    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
+        img = decodeRawInfer(data)
+        img = preprocessInfer(img)
+        logits_r,logits_cw = model(img,training=False)
+        
+        name = data['zname']
+        name = str(name.numpy()[0]).split("'")[-2]
+        f = infer_image_grid(img, logits_r,logits_cw, pltiter, name, config['outdir'])
 
-        pltiter += 1
-
-        # save model
-        if loss < best_loss:
-            best_loss = loss
-            if not os.path.exists(os.path.join(logdir, 'save/')):
-                os.mkdir(os.path.join(logdir, 'save/'))
-            model.save_weights(logdir+'/G')
-            model.save(os.path.join(logdir, 'save/'))
-            tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
-                                                 save_weights_only=False,
-                                                 verbose=1)
-            print('[INFO] Saving Model')
-        print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss) + ' roomTypeLoss: '  + str(loss1) + ' roomBoundLoss' + str(loss2))
-        losses1.append(loss1.numpy())
-        losses2.append(loss2.numpy())
-        totalLosses.append(loss.numpy())
-        now = datetime.now()
-        now = str(now).split(' ')[0]
-        df = pd.DataFrame([losses1, losses2, totalLosses]).T
-        df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
-        df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
-  #  pdb.set_trace() #this is for debugging and is not needed
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument('--batchsize',type=int,default=1)
-    p.add_argument('--lr',type=float,default=1e-4)
-    p.add_argument('--wd',type=float,default=1e-5)
-    p.add_argument('--epochs',type=int,default=1000)
     p.add_argument('--logdir',type=str,default='log/store')
-    p.add_argument('--saveTensorInterval',type=int,default=10)
-    p.add_argument('--saveModelInterval',type=int,default=20)
-    p.add_argument('--restore',type=str,default=None)
+    p.add_argument('--checkpoint',type=str,default=None)
     p.add_argument('--outdir',type=str,default='./out')
-    p.add_argument('--train',type=bool,default=True)
+    p.add_argument('--train',type=bool,default=False)
     args = p.parse_args()
-    main(args)
-
-
-
+    infer(args)
 
 
 

@@ -39,6 +39,15 @@ def preprocess(img,bound,room,size=512):
     hot_r = tf.one_hot(room,9,axis=-1)
     return img,bound,room,hot_b,hot_r
 
+def decodeRawInfer(x):
+    image = tf.io.decode_raw(x['image'],tf.uint8)
+    return image
+
+def preprocessInfer(img,size=512):
+    img = tf.cast(img,dtype=tf.float32)/255
+    img = tf.reshape(img,[-1,size,size,3])
+    return img
+
 
 def loadDataset(size=512, train=True):
     if train:
