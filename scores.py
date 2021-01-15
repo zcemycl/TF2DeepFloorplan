@@ -82,7 +82,8 @@ def evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=Tru
             gt_im_1d = gt_im_ind.flatten()
             res_im_1d = res_im_1d + 1e-6
             gt_im_1d = gt_im_1d + 1e-6
-            sim = cosine(res_im_1d, gt_im_1d)
+            cos = cosine(res_im_1d, gt_im_1d)
+            sim = 1-cos
             print("Image " + str(name) + " similarity " + str(sim))
             sims.append(sim)
             names.append(name)
