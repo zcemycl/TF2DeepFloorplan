@@ -114,10 +114,6 @@ def infer_image_grid(img,logr,logcw, pltiter, name, outdir):
     return figure
 
 
-config = {'batchsize':1, 'logdir':'./log/Jan15_TFR5_TEST', 'checkpoint':'./log/Jan14_TFR5', 
-          'outdir':'./outJan15_TFR5_TEST', 'train':False}
-
-
 def infer(config):
     """Main run function.
 
