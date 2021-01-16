@@ -234,6 +234,8 @@ if __name__ == "__main__":
     p.add_argument('--lr',type=float,default=1e-4)
     p.add_argument('--wd',type=float,default=1e-5)
     p.add_argument('--max_epochs',type=int,default=1000)
+    p.add_argument('--step_size',type=int,default=50)
+    p.add_argument('--gamma',type=float,default=0.3)
     p.add_argument('--logdir',type=str,default='log/store')
     p.add_argument('--saveTensorInterval',type=int,default=10)
     p.add_argument('--saveModelInterval',type=int,default=20)
