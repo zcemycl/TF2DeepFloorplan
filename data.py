@@ -60,6 +60,16 @@ def loadDataset(size=512, train=True):
 def identify_bounds(bound):
     return bound==1
 
+#def loadImages(directory, file_format='.jpg', size=512):
+#    filename_queue = tf.train.string_input_producer(
+#        tf.train.match_filenames_once(os.path.join(directory, '*' + file_format)))
+#    files = os.listdir(directory)
+#    images=[]
+#    for f in files:
+#        if f.endswith(file_format):
+#            fullpath=os.path.join(directory, f)
+#            images.append(fullpath)
+            
 
 if __name__ == "__main__":
     dataset = loadDataset()

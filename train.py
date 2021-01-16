@@ -11,7 +11,7 @@ import pandas as pd
 from PIL import Image
 from datetime import datetime
 from skimage.io import imread, imsave
-from skimage import img_as_float
+from skimage import img_as_float, img_as_ubyte
 import matplotlib.pyplot as plt
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
@@ -90,17 +90,17 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     if not os.path.exists(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/')):
         os.mkdir(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/'))
     im = img[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_image.png'), im)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_image.png'), img_as_ubyte(im), check_contrast=False)
     b = bound[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_bounds.png'), b)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_bounds.png'), img_as_float(b), check_contrast=False)
     ents = identify_bounds(bound[0].numpy())
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), ents)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), img_as_float(ents), check_contrast=False)
     r = room[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), r.astype(np.uint8))
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), img_as_ubyte(r), check_contrast=False)
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw))
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw), check_contrast=False)
     lr = convert_one_hot_to_image(logr, dtype='int')[0].numpy().astype(np.uint8)
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), lr)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), img_as_ubyte(lr), check_contrast=False)
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
@@ -139,6 +139,7 @@ def main(config):
     logdir=config['logdir']
     writer = tf.summary.create_file_writer(logdir) 
     pltiter = 0
+    conv_counter = 0
     dataset,model,optim = init(config)
   #  dataset = dataset.shuffle(400)
     if config['outdir'] is not None:
@@ -155,7 +156,7 @@ def main(config):
         model.load_weights(latest)
  #   graph = tf.compat.v1.get_default_graph()
     # training loop
-    for epoch in range(config['epochs']):
+    for epoch in range(config['max_epochs']):
     #    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
         for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
@@ -190,22 +191,36 @@ def main(config):
                 writer.flush()
 
         pltiter += 1
+        conv_counter += 1
 
         # save model
         if loss < best_loss:
+            conv_counter = 0
             best_loss = loss
             if not os.path.exists(os.path.join(logdir, 'save/')):
                 os.mkdir(os.path.join(logdir, 'save/'))
+            print('[INFO] Saving Model')
             model.save_weights(logdir+'/G')
             model.save(os.path.join(logdir, 'save/'))
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
-            print('[INFO] Saving Model')
-        print('[INFO] Epoch {}'.format(epoch) + ' loss ' + str(loss) + ' roomTypeLoss: '  + str(loss1) + ' roomBoundLoss' + str(loss2))
-        losses1.append(loss1.numpy())
-        losses2.append(loss2.numpy())
-        totalLosses.append(loss.numpy())
+
+        
+        
+        print('[INFO] Epoch {}'.format(epoch) + ' loss: ' + str(loss.numpy()) + ' roomTypeLoss: '  + str(loss1.numpy()) + ' roomBoundLoss: ' + str(loss2.numpy()))
+        losses1.append(float(loss1.numpy()))
+        losses2.append(float(loss2.numpy()))
+        totalLosses.append(float(loss.numpy()))
+        
+        if conv_counter==config['step_size']:
+            config['lr']=config['lr']*config['gamma']
+            optim=tf.keras.optimizers.Adam(learning_rate=config['lr'])
+            print("Decreasing learning rate to " + str(config['lr']))
+        if conv_counter>=config['step_size']*1.5:
+            print("Model has converged.")
+            break
+        
         now = datetime.now()
         now = str(now).split(' ')[0]
         df = pd.DataFrame([losses1, losses2, totalLosses]).T
@@ -218,7 +233,7 @@ if __name__ == "__main__":
     p.add_argument('--batchsize',type=int,default=1)
     p.add_argument('--lr',type=float,default=1e-4)
     p.add_argument('--wd',type=float,default=1e-5)
-    p.add_argument('--epochs',type=int,default=1000)
+    p.add_argument('--max_epochs',type=int,default=1000)
     p.add_argument('--logdir',type=str,default='log/store')
     p.add_argument('--saveTensorInterval',type=int,default=10)
     p.add_argument('--saveModelInterval',type=int,default=20)
