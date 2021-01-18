@@ -1,5 +1,4 @@
 import os
-os.chdir('/d2/studies/TF2DeepFloorplan')
 import tensorflow as tf
 import io
 import tqdm
@@ -26,10 +25,9 @@ def init(config):
     Parameters
     ----------
     config : dict or argparse namespace
-        Dictionary of {'batchsize':2, 'lr':1e-4, 'wd':1e-5, 
-                       'epochs':1000, 'logdir':'./log/store', 
-                       'saveTensorInterval':10, 'saveModelInterval':2, 
-                       'restore':'./log/store/', 'outdir':'./out'}
+        Dictionary of: {'batchsize':1, 'lr':5e-4, 'wd':1e-5, 'max_epochs':2000, 'step_size':25, 'gamma':0.3,
+              'logdir':'./log/Jan18_TFR5_lr5e-4_ss25', 'saveTensorInterval':50, 'restore':None, 
+              'outdir':'./outJan18_TFR5_lr5e-4_ss25', 'train':True}
 
     Returns
     -------
@@ -38,13 +36,8 @@ def init(config):
     optim : Keras optimizer.
 
     """
-   # if config['restore'] is not None:
-   #     print("Loading pre-trained model from {}".format(config['logdir']))
-   #     model=load_model(config['restore'])
-    #else:
     model = deepfloorplanModel()
     dataset = loadDataset(train=config['train'])
-    #optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,weight_decay=config.wd)
     optim = tf.keras.optimizers.Adam(learning_rate=config['lr'])
     return dataset,model,optim
 
@@ -101,7 +94,7 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw), check_contrast=False)
     lr = convert_one_hot_to_image(logr, dtype='int')[0].numpy().astype(np.uint8)
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), img_as_ubyte(lr), check_contrast=False)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), lr, check_contrast=False)
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
@@ -111,14 +104,6 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     figure.savefig(outdir + '/' + str(pltiter) + '_combined.png')
     plt.close()
     return figure
-
-def image_single(img, bound, room, logr, logcw):
-    im = plt.imshow(img[0].numpy())
-    imsave('image.png', im)
-  #  imsave('bound.png', bound[0].numpy())
-  #  imsave('room.png', room[0].numpy())
-  #  imsave('roomTypes.png', logr[0].numpy())
-  #  imsave('entries.png', logcw[0].numpy())
 
 def main(config):
     """Main run function.
@@ -142,27 +127,21 @@ def main(config):
     pltiter = 0
     conv_counter = 0
     dataset,model,optim = init(config)
-  #  dataset = dataset.shuffle(400)
     if config['outdir'] is not None:
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
-    losses1=[]
-    losses2=[]
-    totalLosses=[]
     best_loss=999999
     #load weights from previous training if re-starting
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
         latest = tf.train.latest_checkpoint(config['restore'])
         model.load_weights(latest)
- #   graph = tf.compat.v1.get_default_graph()
     # training loop
     for epoch in range(config['max_epochs']):
         epLoss1=[]
         epLoss2=[]
         epTotalLoss=[]
-    #    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
-        for data in list(dataset.shuffle(400).batch(config['batchsize'])):
+        for data in list(dataset.shuffle(1500).batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
             img,bound,room,hb,hr = preprocess(img,bound,room)
@@ -175,9 +154,9 @@ def main(config):
                 loss2 = balanced_entropy(logits_cw,hb)
                 w1,w2 = cross_two_tasks_weight(hr,hb)
                 loss = w1*loss1+w2*loss2
-                epLoss1.append(loss1.numpy())
-                epLoss2.append(loss2.numpy())
-                epTotalLoss.append(loss.numpy())
+                epLoss1.append(loss1)
+                epLoss2.append(loss2)
+                epTotalLoss.append(loss)
                 # backward
             grads = tape.gradient(loss,model.trainable_weights)
             optim.apply_gradients(zip(grads,model.trainable_weights))
@@ -189,29 +168,32 @@ def main(config):
                     name = str(name.numpy()[0]).split("'")[-2]
                     f = image_grid(img,bound,room,logits_r,logits_cw, pltiter, name, config['outdir'])
                     im = plot_to_image(f, pltiter, name, config['outdir'], save=True)
-            #         image_single(img, bound,room,logits_r,logits_cw)
             
 
-                with writer.as_default():
-                    tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
-                    tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
-                    tf.summary.scalar("LossB",loss2.numpy(),step=pltiter)
-                    tf.summary.image("Data",im,step=pltiter)
-                writer.flush()
+        with writer.as_default():
+            aveLoss = tf.nn.compute_average_loss(epTotalLoss)
+            aveLoss1 = tf.nn.compute_average_loss(epLoss1)
+            aveLoss2 = tf.nn.compute_average_loss(epLoss2)
+            tf.summary.scalar("Loss",aveLoss.numpy(),step=pltiter)
+            tf.summary.scalar("LossR",aveLoss1.numpy(),step=pltiter)
+            tf.summary.scalar("LossB",aveLoss2.numpy(),step=pltiter)
+            tf.summary.image("Data",im,step=pltiter)
+        writer.flush()
+
+        aveLoss = tf.nn.compute_average_loss(epTotalLoss)
+        aveLoss1 = tf.nn.compute_average_loss(epLoss1)
+        aveLoss2 = tf.nn.compute_average_loss(epLoss2)
 
         pltiter += 1
         conv_counter += 1
 
-        aveEpLoss1=np.mean(epLoss1)
-        aveEpLoss2=np.mean(epLoss2)
-        aveTotalLoss=np.mean(epTotalLoss)
-        stdEpLoss1=np.std(epLoss1)
-        stdEpLoss2=np.std(epLoss2)
-        stdTotalLoss=np.std(epTotalLoss)
+        stdEpLoss1=np.std([x.numpy() for x in epLoss1])
+        stdEpLoss2=np.std([x.numpy() for x in epLoss2])
+        stdTotalLoss=np.std([x.numpy() for x in epTotalLoss])
         # save model
-        if aveTotalLoss < best_loss:
+        if aveLoss.numpy() < best_loss:
             conv_counter = 0
-            best_loss = aveTotalLoss
+            best_loss = aveLoss.numpy()
             if not os.path.exists(os.path.join(logdir, 'save/')):
                 os.mkdir(os.path.join(logdir, 'save/'))
             print('[INFO] Saving Model')
@@ -220,15 +202,13 @@ def main(config):
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
+        print('[INFO] Epoch {}'.format(epoch) + ' Average loss: ' + str(aveLoss.numpy()) + ' std ' + str(stdTotalLoss) + ' roomTypeLoss: '  + str(aveLoss1.numpy()) + ' std ' + str(stdEpLoss1) + ' roomBoundLoss: ' + str(aveLoss2.numpy()) + ' std ' + str(stdEpLoss2))
 
-        
-        
-        print('[INFO] Epoch {}'.format(epoch) + ' loss: ' + str(loss.numpy()) + ' roomTypeLoss: '  + str(loss1.numpy()) + ' roomBoundLoss: ' + str(loss2.numpy()))
-        print('[INFO] Epoch {}'.format(epoch) + ' Average loss: ' + str(aveTotalLoss) + ' std ' + str(stdTotalLoss) + ' roomTypeLoss: '  + str(aveEpLoss1) + ' std ' + str(stdEpLoss1) + ' roomBoundLoss: ' + str(aveEpLoss2) + ' std ' + str(stdEpLoss2))
-
-        losses1.append(float(loss1.numpy()))
-        losses2.append(float(loss2.numpy()))
-        totalLosses.append(float(loss.numpy()))
+        now = datetime.now()
+        now = str(now).split(' ')[0]
+        df = pd.DataFrame([aveLoss1.numpy(), aveLoss2.numpy(), aveLoss.numpy()]).T
+        df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
+        df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
         
         if conv_counter==config['step_size']:
             config['lr']=config['lr']*config['gamma']
@@ -238,12 +218,6 @@ def main(config):
             print("Model has converged.")
             break
         
-        now = datetime.now()
-        now = str(now).split(' ')[0]
-        df = pd.DataFrame([epLoss1, epLoss2, epTotalLoss]).T
-        df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
-        df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
-  #  pdb.set_trace() #this is for debugging and is not needed
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -255,7 +229,6 @@ if __name__ == "__main__":
     p.add_argument('--gamma',type=float,default=0.3)
     p.add_argument('--logdir',type=str,default='log/store')
     p.add_argument('--saveTensorInterval',type=int,default=10)
-    p.add_argument('--saveModelInterval',type=int,default=20)
     p.add_argument('--restore',type=str,default=None)
     p.add_argument('--outdir',type=str,default='./out')
     p.add_argument('--train',type=bool,default=True)
