@@ -13,6 +13,7 @@ from datetime import datetime
 from skimage.io import imread, imsave
 from skimage import img_as_float, img_as_ubyte
 import matplotlib.pyplot as plt
+import numpy as np
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -157,6 +158,9 @@ def main(config):
  #   graph = tf.compat.v1.get_default_graph()
     # training loop
     for epoch in range(config['max_epochs']):
+        epLoss1=[]
+        epLoss2=[]
+        epTotalLoss=[]
     #    for data in list(dataset.shuffle(400).batch(config['batchsize'])):
         for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
@@ -171,10 +175,13 @@ def main(config):
                 loss2 = balanced_entropy(logits_cw,hb)
                 w1,w2 = cross_two_tasks_weight(hr,hb)
                 loss = w1*loss1+w2*loss2
+                epLoss1.append(loss1.numpy())
+                epLoss2.append(loss2.numpy())
+                epTotalLoss.append(loss.numpy())
                 # backward
             grads = tape.gradient(loss,model.trainable_weights)
             optim.apply_gradients(zip(grads,model.trainable_weights))
-    
+            
             # plot progress
             if config['outdir'] is not None:
                 if pltiter%config['saveTensorInterval'] == 0:
@@ -183,6 +190,8 @@ def main(config):
                     f = image_grid(img,bound,room,logits_r,logits_cw, pltiter, name, config['outdir'])
                     im = plot_to_image(f, pltiter, name, config['outdir'], save=True)
             #         image_single(img, bound,room,logits_r,logits_cw)
+            
+
                 with writer.as_default():
                     tf.summary.scalar("Loss",loss.numpy(),step=pltiter)
                     tf.summary.scalar("LossR",loss1.numpy(),step=pltiter)
@@ -193,10 +202,16 @@ def main(config):
         pltiter += 1
         conv_counter += 1
 
+        aveEpLoss1=np.mean(epLoss1)
+        aveEpLoss2=np.mean(epLoss2)
+        aveTotalLoss=np.mean(epTotalLoss)
+        stdEpLoss1=np.std(epLoss1)
+        stdEpLoss2=np.std(epLoss2)
+        stdTotalLoss=np.std(epTotalLoss)
         # save model
-        if loss < best_loss:
+        if aveTotalLoss < best_loss:
             conv_counter = 0
-            best_loss = loss
+            best_loss = aveTotalLoss
             if not os.path.exists(os.path.join(logdir, 'save/')):
                 os.mkdir(os.path.join(logdir, 'save/'))
             print('[INFO] Saving Model')
@@ -209,6 +224,8 @@ def main(config):
         
         
         print('[INFO] Epoch {}'.format(epoch) + ' loss: ' + str(loss.numpy()) + ' roomTypeLoss: '  + str(loss1.numpy()) + ' roomBoundLoss: ' + str(loss2.numpy()))
+        print('[INFO] Epoch {}'.format(epoch) + ' Average loss: ' + str(aveTotalLoss) + ' std ' + str(stdTotalLoss) + ' roomTypeLoss: '  + str(aveEpLoss1) + ' std ' + str(stdEpLoss1) + ' roomBoundLoss: ' + str(aveEpLoss2) + ' std ' + str(stdEpLoss2))
+
         losses1.append(float(loss1.numpy()))
         losses2.append(float(loss2.numpy()))
         totalLosses.append(float(loss.numpy()))
@@ -223,7 +240,7 @@ def main(config):
         
         now = datetime.now()
         now = str(now).split(' ')[0]
-        df = pd.DataFrame([losses1, losses2, totalLosses]).T
+        df = pd.DataFrame([epLoss1, epLoss2, epTotalLoss]).T
         df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
         df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
   #  pdb.set_trace() #this is for debugging and is not needed
