@@ -49,7 +49,7 @@ def plot_to_image(figure, pltiter, name, directory, save=False):
     figure : tensor
         Tensorflow tensor to convert to image.
     pltiter : int
-        Iteration to plot.
+        Epoch counter 
     directory : string
         Output directory.
     """
@@ -101,7 +101,7 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     ax3 = plt.subplot(2,3,3);plt.imshow(room[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax4 = plt.subplot(2,3,5);plt.imshow(convert_one_hot_to_image(logcw)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax5 = plt.subplot(2,3,6);plt.imshow(convert_one_hot_to_image(logr)[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
-    figure.savefig(outdir + '/' + str(pltiter) + '_combined.png')
+    figure.savefig(outdir + '/' + str(pltiter) + '/' + name + '_combined.png')
     plt.close()
     return figure
 
