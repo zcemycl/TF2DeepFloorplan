@@ -89,12 +89,12 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_bounds.png'), img_as_float(b), check_contrast=False)
     ents = identify_bounds(bound[0].numpy())
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), img_as_float(ents), check_contrast=False)
-    r = room[0].numpy()
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), img_as_ubyte(r), check_contrast=False)
+    r = room[0].numpy().astype(np.uint8)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), img_as_float(r), check_contrast=False)
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw), check_contrast=False)
-    lr = convert_one_hot_to_image(logr, dtype='int')[0].numpy().astype(np.uint8)
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), lr, check_contrast=False)
+    lr = convert_one_hot_to_image(logr)[0].numpy().astype(np.uint8)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), img_as_float(lr), check_contrast=False)
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
@@ -131,6 +131,9 @@ def main(config):
         if not os.path.exists(config['outdir']):
             os.mkdir(config['outdir'])
     best_loss=999999
+    losses1=[]
+    losses2=[]
+    totalLosses=[]
     #load weights from previous training if re-starting
     if config['restore'] is not None:
         print("Loading weights from {}".format(config['restore']))
@@ -141,7 +144,7 @@ def main(config):
         epLoss1=[]
         epLoss2=[]
         epTotalLoss=[]
-        for data in list(dataset.shuffle(1500).batch(config['batchsize'])):
+        for data in list(dataset.shuffle(400).batch(config['batchsize'])):
             # forward
             img,bound,room = decodeAllRaw(data)
             img,bound,room,hb,hr = preprocess(img,bound,room)
@@ -183,7 +186,11 @@ def main(config):
         aveLoss = tf.nn.compute_average_loss(epTotalLoss)
         aveLoss1 = tf.nn.compute_average_loss(epLoss1)
         aveLoss2 = tf.nn.compute_average_loss(epLoss2)
-
+        
+        totalLosses.append(aveLoss.numpy())
+        losses1.append(aveLoss1.numpy())
+        losses2.append(aveLoss2.numpy())
+        
         pltiter += 1
         conv_counter += 1
 
@@ -202,7 +209,9 @@ def main(config):
             tf.keras.callbacks.ModelCheckpoint(filepath=config['logdir'],
                                                  save_weights_only=False,
                                                  verbose=1)
-        print('[INFO] Epoch {}'.format(epoch) + ' Average loss: ' + str(aveLoss.numpy()) + ' std ' + str(stdTotalLoss) + ' roomTypeLoss: '  + str(aveLoss1.numpy()) + ' std ' + str(stdEpLoss1) + ' roomBoundLoss: ' + str(aveLoss2.numpy()) + ' std ' + str(stdEpLoss2))
+        print('[INFO] Epoch {}'.format(epoch) + ' Average loss: ' + str(round(aveLoss.numpy(),4)) + ' std ' + str(round(stdTotalLoss,4)) 
+              + ' roomTypeLoss: '  + str(round(aveLoss1.numpy(),4)) + ' std ' + str(round(stdEpLoss1,4)) + ' roomBoundLoss: ' + str(round(aveLoss2.numpy(),4)) 
+              + ' std ' + str(round(stdEpLoss2,4)) + ' Learning Rate: ' + str(config['lr']))
 
         now = datetime.now()
         now = str(now).split(' ')[0]
