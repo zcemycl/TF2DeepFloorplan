@@ -31,7 +31,7 @@ parser.add_argument('--result_dir', type=str, default='./out',
 
 ###ALSO ADD FUNCTION TO PARSE BOUNDARIES FROM WALLS
 
-def evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=True, gt_resize=True, train=False):
+def evaluateRooms_cosine(benchmark_path, result_dir, num_of_classes=11, suffix=None, im_resize=True, gt_resize=True, train=False):
     """
 
     Parameters
@@ -42,6 +42,8 @@ def evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=Tru
         Directory containing result images to evaluate.
     num_of_classes : int, optional
         Number of room classes. The default is 11.
+    suffix : string, optional
+        Suffix to append to file name.
     im_resize : boolean, optional
         Whether to resize result images to 512x512. The default is True.
     gt_resize : boolean, optional
@@ -55,9 +57,7 @@ def evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=Tru
 
     """
     gt_paths = open(benchmark_path, 'r').read().splitlines()
-    d_paths = [p.split('\t')[2] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
     r_paths = [p.split('\t')[3] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
-    cw_paths = [p.split('\t')[-1] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room, last one denote close wall
     im_names = [p.split('/')[-1].split('.')[0] for p in gt_paths]
     im_paths = [os.path.join(result_dir, p.split('/')[-1].split('.')[0] + '_pred.png') for p in r_paths]
     data_dir = os.path.dirname(benchmark_path)
@@ -93,13 +93,87 @@ def evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=Tru
     df.columns=['image', 'similarity']
     df.sort_values(by='similarity', inplace=True, ascending=False)
     df.reset_index(drop=True, inplace=True)
-    df.to_csv('Cosine_Similarity_Results.csv')
+    if suffix:  
+        df.to_csv('Cosine_Similarity_Results_' + suffix + '.csv')
+    elif not suffix:
+            df.to_csv('Cosine_RoomSimilarity_Results.csv')
+
     aveSim = np.mean(sims)
     print("Average cosine similarity " + str(aveSim))
     return df
                 
-#evaluate_cosine(benchmark_path, result_dir, num_of_classes=11, im_resize=True, gt_resize=True, train=True)             
+def evaluateBounds_cosine(benchmark_path, result_dir, suffix=None, im_resize=True, gt_resize=True, train=False):
+    """
+
+    Parameters
+    ----------
+    benchmark_path : string
+        Path to .txt file containing dataset paths.
+    result_dir : string
+        Directory containing result images to evaluate.
+    suffix : string, optional
+        Suffix to append to file name
+    im_resize : boolean, optional
+        Whether to resize result images to 512x512. The default is True.
+    gt_resize : boolean, optional
+        Whether to resize ground truth images to 512x512. The default is True.
+    train : boolean, optional
+        Whether to evaluate training data or test data. The default is False.
+
+    Returns
+    -------
+    None.
+
+    """
+    gt_paths = open(benchmark_path, 'r').read().splitlines()
+    d_paths = [p.split('\t')[2] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
+    r_paths = [p.split('\t')[3] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
+    cw_paths = [p.split('\t')[-1] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room, last one denote close wall
+    im_names = [p.split('/')[-1].split('.')[0] for p in gt_paths]
+    im_paths = [os.path.join(result_dir, p.split('/')[-1].split('.')[0]).replace('_close', '_doors_windows') + '.png' for p in d_paths]
+    data_dir = os.path.dirname(benchmark_path)
+    sims=[]
+    names = []
+    for i in range(len(im_paths)):
+        try:
+            res_im  = imread(im_paths[i], pilmode='L')
+            name = os.path.basename(im_paths[i]).split('_')[0]
+            if train:
+                gt_im = imread(os.path.join(data_dir, 'newyork/train/' + name + '_close.png'), pilmode='L')
+            elif not train:
+                gt_im = imread(os.path.join(data_dir, 'newyork/test/' + name + '_close.png'))
                 
+            if im_resize:
+                res_im = imresize(res_im, (512,512,3), mode='constant', cval=0, preserve_range=True)
+            if gt_resize:
+                gt_im = imresize(gt_im, (512,512,3), mode='constant', cval=0, preserve_range=True)
+            res_im_1d = res_im.flatten()
+            gt_im_1d = gt_im.flatten()
+            res_im_1d = res_im_1d + 1e-6
+            gt_im_1d = gt_im_1d + 1e-6
+            cos = cosine(res_im_1d, gt_im_1d)
+            sim = 1-cos
+            print("Image " + str(name) + " similarity " + str(sim))
+            sims.append(sim)
+            names.append(name)
+        except FileNotFoundError:
+            pass
+    df = pd.DataFrame([names, sims]).T
+    df.columns=['image', 'similarity']
+    df.sort_values(by='similarity', inplace=True, ascending=False)
+    df.reset_index(drop=True, inplace=True)
+    if suffix:
+        df.to_csv('Cosine_EntranceSimilarity_Results_' + suffix + '.csv')
+    elif not suffix:
+        df.to_csv('Cosine_EntranceSimilarity_Results.csv')
+    aveSim = np.mean(sims)
+    print("Average cosine similarity " + str(aveSim))
+    return df
+      
+
+evaluateBounds_cosine(benchmark_path, result_dir, suffix='TEST', im_resize=True, gt_resize=True, train=True)
+
+          
 def evaluate_semantic(benchmark_path, result_dir, num_of_classes=11, need_merge_result=False, im_downsample=False, gt_downsample=False):
     gt_paths = open(benchmark_path, 'r').read().splitlines()
     d_paths = [p.split('\t')[2] for p in gt_paths] # 1 denote wall, 2 denote door, 3 denote room
