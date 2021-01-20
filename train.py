@@ -5,11 +5,13 @@ import tqdm
 from net import *
 from loss import *
 from data import *
+from utils.rgb_ind_convertor import *
 import argparse
 import pandas as pd
 from PIL import Image
 from datetime import datetime
 from skimage.io import imread, imsave
+from skimage.transform import resize as imresize
 from skimage import img_as_float, img_as_ubyte
 import matplotlib.pyplot as plt
 import numpy as np
@@ -90,11 +92,13 @@ def image_grid(img,bound,room,logr,logcw, pltiter, name, outdir):
     ents = identify_bounds(bound[0].numpy())
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_doors_windows.png'), img_as_float(ents), check_contrast=False)
     r = room[0].numpy().astype(np.uint8)
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), img_as_float(r), check_contrast=False)
+    r_rgb = ind2rgb(r).astype(np.uint8)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms.png'), r_rgb, check_contrast=False)
     lcw = convert_one_hot_to_image(logcw)[0].numpy()
     imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_close_walls.png'), img_as_float(lcw), check_contrast=False)
-    lr = convert_one_hot_to_image(logr)[0].numpy().astype(np.uint8)
-    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), img_as_float(lr), check_contrast=False)
+    lr = convert_one_hot_to_image(logr)[0].numpy().astype(np.uint8)[:,:,0]
+    lr_rgb = ind2rgb(lr).astype(np.uint8)
+    imsave(os.path.join(os.getcwd(), outdir + '/' + str(pltiter) + '/' + name + '_rooms_pred.png'), lr_rgb, check_contrast=False)
     figure = plt.figure()
     ax1 = plt.subplot(2,3,1);plt.imshow(img[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
     ax2 = plt.subplot(2,3,2);plt.imshow(bound[0].numpy());plt.xticks([]);plt.yticks([]);plt.grid(False)
@@ -215,7 +219,7 @@ def main(config):
 
         now = datetime.now()
         now = str(now).split(' ')[0]
-        df = pd.DataFrame([aveLoss1.numpy(), aveLoss2.numpy(), aveLoss.numpy()]).T
+        df = pd.DataFrame([losses1, losses2, totalLosses]).T
         df.columns=['Loss_RoomType', 'Loss_RoomBound', 'TotalLoss']
         df.to_csv(os.path.join(logdir, 'losses_' + str(now) + '.csv'))
         
