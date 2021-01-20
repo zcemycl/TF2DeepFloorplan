@@ -1,23 +1,15 @@
 import argparse
 import numpy as np
-#from scipy.misc import imread, imsave, imresize
 from skimage.io import imread, imsave
 from skimage.transform import resize as imresize
 from scipy.spatial.distance import cosine
 import os
-os.chdir('/d2/studies/TF2DeepFloorplan')
 import sys
 import glob
 import time
 import pandas as pd
-#sys.path.append('./utils/')
 from utils.util import fast_hist
 from utils.rgb_ind_convertor import *
-
-baseDirectory = '/d2/studies/TF2DeepFloorplan/'
-benchmark_path='/d2/studies/TF2DeepFloorplan/dataset/r3d_train.txt'
-result_dir='/d2/studies/TF2DeepFloorplan/outJan14_TFR3_5/50/' #change this to outdir of training
-num_of_classes=11
 
 
 parser = argparse.ArgumentParser()
@@ -68,10 +60,10 @@ def evaluateRooms_cosine(benchmark_path, result_dir, num_of_classes=11, suffix=N
             res_im  = imread(im_paths[i], pilmode='RGB')
             name = os.path.basename(im_paths[i]).split('_')[0]
             if train:
-                gt_im = imread(os.path.join(data_dir, 'newyork/train/' + name + '_multi.png'), pilmode='RGB')
+                gt_im = imread(os.path.join(data_dir, 'newyork/train/' + name + '_rooms.png'), pilmode='RGB')
                 gt_im_ind = rgb2ind(gt_im, color_map=floorplan_fuse_map) 
             elif not train:
-                gt_im = imread(os.path.join(data_dir, 'newyork/test/' + name + '_multi.png'))
+                gt_im = imread(os.path.join(data_dir, 'newyork/test/' + name + '_rooms.png'), pilmode='RGB')
                 gt_im_ind = rgb2ind(im, color_map=floorplan_fuse_map)
                 
             if im_resize:
