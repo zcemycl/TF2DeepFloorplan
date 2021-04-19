@@ -16,12 +16,12 @@ pip install -r requirements.txt
 2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`.
 3. Run the `train.py` file  to initiate the training, 
 ```
-python main.py [--batchsize 2][--lr 1e-4][--epochs 1000]
+python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--saveTensorInterval 10][--saveModelInterval 20]
 ```
 - for example,
 ```
-python main.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
+python train.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
 ```
 4. Run Tensorboard to view the progress of loss and images via,
 ```
