@@ -30,11 +30,12 @@ tensorboard --logdir=log/store
 5. Deploy the model via `deploy.py`,
 ```
 python deploy.py [--image 'path/to/image'][--weight 'log/store/G']
-[--postprocess][--colorize]
+[--postprocess][--colorize][--save 'path/to/output_image']
 ```
 - for example,
 ```
-python deploy.py --image floorplan.jpg --weight log/store/G --postprocess --colorize
+python deploy.py --image floorplan.jpg --weight log/store/G 
+--postprocess --colorize --save output.jpg
 ```
 
 ## Results
@@ -46,7 +47,7 @@ python deploy.py --image floorplan.jpg --weight log/store/G --postprocess --colo
 |Boundary Loss|Room Loss|
 |<img src="resources/LossB.png" width="400">|<img src="resources/LossR.png" width="400">|
 
-- From `deploy.py`.
+- From `deploy.py` and `utils/legend.py`.
 
 |Input|Legend|Output|
 |:-------------------------:|:-------------------------:|:-------------------------:|
