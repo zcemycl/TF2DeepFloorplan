@@ -51,6 +51,6 @@ python deploy.py --image floorplan.jpg --weight log/store/G
 
 |Input|Legend|Output|
 |:-------------------------:|:-------------------------:|:-------------------------:|
-|<img src="resources/30939153.jpg" width="250">|<img src="resources/legend.png" width="250">|<img src="resources/output.jpg" width="250">|
+|<img src="resources/30939153.jpg" width="250">|<img src="resources/legend.png" width="180">|<img src="resources/output.jpg" width="250">|
 |`--colorize`|`--postprocess`|`--colorize`<br>`--postprocess`|
 |<img src="resources/color.jpg" width="250">|<img src="resources/post.jpg" width="250">|<img src="resources/postcolor.jpg" width="250">|
