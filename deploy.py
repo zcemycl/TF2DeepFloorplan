@@ -8,16 +8,15 @@ import sys
 import argparse
 import pdb
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
-tPATH='/media/yui/Disk/data/Rent3D-CVPR2015/floorplan/30939153.jpg'
 
 sys.path.append('./utils/')
 from rgb_ind_convertor import *
 from util import *
 
-def init():
+def init(config):
     model = deepfloorplanModel()
-    model.load_weights('../log/store3/G')
-    img = mpimg.imread(tPATH)
+    model.load_weights(config.weight)
+    img = mpimg.imread(config.image)
     shp = img.shape
     img = tf.convert_to_tensor(img,dtype=tf.uint8)
     img = tf.image.resize(img,[512,512])
@@ -102,22 +101,40 @@ def colorize(r,cw):
 
 
 
-def main():
-    model,img,shp = init()
+def main(config):
+    model,img,shp = init(config)
     logits_cw,logits_r = predict(model,img,shp)
     r = convert_one_hot_to_image(logits_r)[0].numpy()
     cw = convert_one_hot_to_image(logits_cw)[0].numpy()
+
+    if not config.colorize and not config.postprocess:
+        cw[cw==1] = 9; cw[cw==2] = 10; r[cw!=0] = 0
+        return r+cw
+    elif config.colorize and not config.postprocess:
+        r_color,cw_color = colorize(r.squeeze(),cw.squeeze())
+        return r_color+cw_color
+
     newr,newcw = post_process(r,cw,shp)
-    newr_color,newcw_color = colorize(newr.squeeze(),
-                newcw.squeeze())
+    if not config.colorize and config.postprocess:
+        newcw[newcw==1] = 9; newcw[newcw==2] = 10; newr[newcw!=0] = 0
+        return newr.squeeze()+newcw
+    newr_color,newcw_color = colorize(newr.squeeze(),newcw.squeeze())
     result = newr_color+newcw_color
     print(shp,result.shape)
 
-    plt.imshow(result)
-    plt.show()
+    return result
 
 
 if __name__ == "__main__":
-    main()
+    p = argparse.ArgumentParser()
+    p.add_argument('--image',type=str,default='/media/yui/Disk/data/Rent3D-CVPR2015/floorplan/30939153.jpg')
+    p.add_argument('--weight',type=str,default='./log/store3/G')
+    p.add_argument('--postprocess',action='store_true')
+    p.add_argument('--colorize',action='store_true')
+    args = p.parse_args()
+    print('------------',args)
+    result = main(args)
 
+    plt.imshow(result);plt.xticks([]);plt.yticks([]);plt.grid(False)
+    plt.show()
 
