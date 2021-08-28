@@ -110,7 +110,7 @@ def main(config):
 
     if not config.colorize and not config.postprocess:
         cw[cw==1] = 9; cw[cw==2] = 10; r[cw!=0] = 0
-        return r+cw
+        return (r+cw).squeeze()
     elif config.colorize and not config.postprocess:
         r_color,cw_color = colorize(r.squeeze(),cw.squeeze())
         return r_color+cw_color
@@ -136,6 +136,7 @@ if __name__ == "__main__":
     args = p.parse_args()
     print('------------',args)
     result = main(args)
+    print(result.shape)
 
     if args.save:
         mpimg.imsave(args.save,result.astype(np.uint8))
