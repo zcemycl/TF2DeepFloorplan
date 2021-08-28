@@ -1,4 +1,4 @@
-# TF2DeepFloorplan
+# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 This repo contains a basic procedure to train the DNN model suggested by the paper ['Deep Floor Plan Recognition using a Multi-task Network with Room-boundary-Guided Attention'](https://arxiv.org/abs/1908.11025). It rewrites the original codes from [zlzeng/DeepFloorplan](https://github.com/zlzeng/DeepFloorplan) into newer versions of Tensorflow and Python. 
 <br>
 Network Architectures from the paper, <br>
@@ -16,12 +16,12 @@ pip install -r requirements.txt
 2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`.
 3. Run the `train.py` file  to initiate the training, 
 ```
-python main.py [--batchsize 2][--lr 1e-4][--epochs 1000]
+python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--saveTensorInterval 10][--saveModelInterval 20]
 ```
 - for example,
 ```
-python main.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
+python train.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
 ```
 4. Run Tensorboard to view the progress of loss and images via,
 ```
