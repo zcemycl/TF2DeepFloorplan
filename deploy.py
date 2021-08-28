@@ -1,4 +1,5 @@
 import tensorflow as tf
+from PIL import Image
 from net import *
 from data import *
 import matplotlib.image as mpimg
@@ -128,12 +129,16 @@ def main(config):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument('--image',type=str,default='/media/yui/Disk/data/Rent3D-CVPR2015/floorplan/30939153.jpg')
-    p.add_argument('--weight',type=str,default='./log/store3/G')
+    p.add_argument('--weight',type=str,default='../log/store/G')
     p.add_argument('--postprocess',action='store_true')
     p.add_argument('--colorize',action='store_true')
+    p.add_argument('--save',type=str)
     args = p.parse_args()
     print('------------',args)
     result = main(args)
+
+    if args.save:
+        mpimg.imsave(args.save,result.astype(np.uint8))
 
     plt.imshow(result);plt.xticks([]);plt.yticks([]);plt.grid(False)
     plt.show()
