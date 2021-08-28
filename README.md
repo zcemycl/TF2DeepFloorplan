@@ -37,10 +37,17 @@ python deploy.py [--image 'path/to/image'][--weight 'log/store/G']
 python deploy.py --image floorplan.jpg --weight log/store/G --postprocess --colorize
 ```
 
-## Result
-The following top left figure illustrates the result of the training image after 60 epochs, the first row is the ground truth (left:input, middle:boundary, right:room-type), the second row is the generated results. However, the result is not yet postprocessed, so the colors do not represent the classes, the edges are not smooth and the same area does not only show one class. <br>
-The remaining figures are the graphs of total loss, loss for boundary and loss for room.
-<img src="resources/epoch60.png" width="40%">
-<img src="resources/Loss.png" width="40%">
-<img src="resources/LossB.png" width="40%">
-<img src="resources/LossR.png" width="40%">
+## Results
+- From `train.py` and `tensorboard`.
+
+|Compare Ground Truth (top)<br> against Outputs (bottom)|Total Loss|
+|:-------------------------:|:-------------------------:|
+|<img src="resources/epoch60.png" width="400">|<img src="resources/Loss.png" width="400">|
+|Boundary Loss|Room Loss|
+|<img src="resources/LossB.png" width="400">|<img src="resources/LossR.png" width="400">|
+
+- From `deploy.py`.
+
+|`--colorize`|`--postprocess`|`--colorize`<br>`--postprocess`|
+|:-------------------------:|:-------------------------:|:-------------------------:|
+|<img src="resources/color.jpg" width="250">|<img src="resources/post.jpg" width="250">|<img src="resources/postcolor.jpg" width="250">|
