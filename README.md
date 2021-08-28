@@ -14,7 +14,7 @@ The code has been tested under the environment of Python 3.7.4 with tensorflow-g
 pip install -r requirements.txt
 ```
 2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`.
-3. Run the `train.py` file  to initiate the training, 
+3. Run the `train.py` file  to initiate the training, model weight is stored as `log/store/G`, 
 ```
 python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--saveTensorInterval 10][--saveModelInterval 20]
@@ -23,9 +23,18 @@ python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
 ```
 python train.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
 ```
-4. Run Tensorboard to view the progress of loss and images via,
+4. Run Tensorboard to view the progress of loss and images via, 
 ```
 tensorboard --logdir=log/store
+```
+5. Deploy the model via `deploy.py`,
+```
+python deploy.py [--image 'path/to/image'][--weight 'log/store/G']
+[--postprocess][--colorize]
+```
+- for example,
+```
+python deploy.py --image floorplan.jpg --weight log/store/G --postprocess --colorize
 ```
 
 ## Result
