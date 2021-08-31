@@ -128,8 +128,8 @@ def main(config):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument('--image',type=str,default='/media/yui/Disk/data/Rent3D-CVPR2015/floorplan/30939153.jpg')
-    p.add_argument('--weight',type=str,default='../log/store/G')
+    p.add_argument('--image',type=str,default='resources/30939153.jpg')
+    p.add_argument('--weight',type=str,default='log/store/G')
     p.add_argument('--postprocess',action='store_true')
     p.add_argument('--colorize',action='store_true')
     p.add_argument('--save',type=str)
