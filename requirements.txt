@@ -6,3 +6,4 @@ tensorboard==2.3.0
 tensorflow-gpu==2.3.0
 scipy==1.4.1
 Pillow==8.0.1
+gdown==3.13.0
