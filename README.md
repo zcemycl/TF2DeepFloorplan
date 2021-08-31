@@ -48,6 +48,7 @@ python deploy.py --image floorplan.jpg --weight log/store/G
 ```
 docker build -t tf_docker -f Dockerfile .
 docker run -d -p 1111:1111 tf_docker:latest 
+docker run --gpus all -d -p 1111:1111 tf_docker:latest 
 ```
 2. Call the api for output.
 ```
