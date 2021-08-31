@@ -3,23 +3,36 @@ from deploy import *
 import argparse
 from argparse import Namespace
 import multiprocessing as mp
+import random
+import requests
 
 app = Flask(__name__)
 
-def worker(queue):
-    ret = queue.get()
-    print(ret)
-    result = main(ret)
-    print(result)
-    queue.put(result)
-
-
 @app.route("/process",methods=['POST'])
 def process_image():
-    args = Namespace(image='resources/30939153.jpg',
+    dct = request.json
+    print(request.json)
+
+    # arguments
+    uri = dct["uri"] if 'uri' in dct.keys() else None
+    postprocess = bool(dct['postprocess']) if 'postprocess' in dct.keys() else True
+    colorize = bool(dct['colorize']) if 'colorize' in dct.keys() else True
+
+    # download image
+    fnum = str(random.randint(0,10000))
+    if uri:
+        data = requests.get(uri).content
+        with open(fnum+'.jpg','wb') as handler:
+            handler.write(data)
+        finname = fnum+'.jpg'
+    else:
+        finname = 'resources/30939153.jpg'
+    foutname = fnum+'-out.jpg'
+
+    args = Namespace(image=finname,
             weight='../log/store/G',
-            postprocess=True,colorize=True,
-            save='1.jpg')
+            postprocess=postprocess,colorize=colorize,
+            save=foutname)
 
     with mp.Pool() as pool:
         result = pool.map(main,[args])[0]
@@ -29,7 +42,7 @@ def process_image():
     if args.save:
         mpimg.imsave(args.save,np.array(result).astype(np.uint8))
 
-    callback = send_file('1.jpg',mimetype='image/jpg')
+    callback = send_file(foutname,mimetype='image/jpg')
 
     return callback, 200
 
