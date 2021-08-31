@@ -7,3 +7,12 @@ tensorflow-gpu==2.3.0
 scipy==1.4.1
 Pillow==8.0.1
 gdown==3.13.0
+Flask==1.1.2
+Flask-Bcrypt==0.7.1
+Flask-Classful==0.14.2
+Flask-Cors==3.0.10
+Flask-Ext==0.1
+Flask-Jsonpify==1.5.0
+Flask-Markdown==0.3
+Flask-WTF==0.14.3
+
