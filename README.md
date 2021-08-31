@@ -43,6 +43,19 @@ python deploy.py --image floorplan.jpg --weight log/store/G
 --postprocess --colorize --save output.jpg
 ```
 
+## Docker for API
+1. Build and run docker container. 
+```
+docker build -t tf_docker -f Dockerfile .
+docker run -d -p 1111:1111 tf_docker:latest 
+```
+2. Call the api for output.
+```
+curl -X POST "http://0.0.0.0:1111/process" -H "accept: image/jpg" 
+  -H "Content-Type: application/json"  --output colorized_image.jpg
+```
+
+
 ## Results
 - From `train.py` and `tensorboard`.
 
