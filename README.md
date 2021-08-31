@@ -27,7 +27,12 @@ python train.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
 ```
 tensorboard --logdir=log/store
 ```
-5. Deploy the model via `deploy.py`,
+5. Download and unzip model from google drive, 
+```
+gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON
+unzip log.zip 
+```
+6. Deploy the model via `deploy.py`,
 ```
 python deploy.py [--image 'path/to/image'][--weight 'log/store/G']
 [--postprocess][--colorize][--save 'path/to/output_image']
