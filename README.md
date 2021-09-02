@@ -52,11 +52,13 @@ docker run --gpus all -d -p 1111:1111 tf_docker:latest
 ```
 2. Call the api for output.
 ```
-curl -X POST "http://0.0.0.0:1111/process" -H "accept: image/jpg" 
-  -H "Content-Type: application/json"  --output colorized_image.jpg
-curl -H "Content-Type: application/json" --request POST   
-  -d '{"uri":"uri.jpg","colorize":1,"postprocess":0}'   
-  http://0.0.0.0:1111/process --output out.jpg
+curl -X POST "http://0.0.0.0:1111/process" -H "accept: image/jpg" \
+  -H "Content-Type: application/json"  --output out.jpg
+curl -H "Content-Type: application/json" --request POST  \
+  -d '{"uri":"https://cdn.cnn.com/cnnnext/dam/assets/200212132008-04-london-rental-market-intl-exlarge-169.jpg","colorize":1,"postprocess":0}'  \
+  http://0.0.0.0:1111/process --output out.jpg 
+curl --request POST -F "file=@/home/yui/Pictures/4plan/tmp.jpeg;type=image/jpeg" \
+  -F "postprocess=0" -F "colorize=0"  http://0.0.0.0:1111/process --output out.jpg
 ```
 
 
