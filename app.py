@@ -10,27 +10,49 @@ app = Flask(__name__)
 
 @app.route("/process",methods=['POST'])
 def process_image():
-    dct = request.json
-    print(request.json)
-
-    # arguments
-    uri = dct["uri"] if 'uri' in dct.keys() else None
-    postprocess = bool(dct['postprocess']) if 'postprocess' in dct.keys() else True
-    colorize = bool(dct['colorize']) if 'colorize' in dct.keys() else True
-
-    # download image
     fnum = str(random.randint(0,10000))
-    if uri:
-        data = requests.get(uri).content
-        with open(fnum+'.jpg','wb') as handler:
-            handler.write(data)
-        finname = fnum+'.jpg'
-    else:
-        finname = 'resources/30939153.jpg'
+    finname = 'resources/30939153.jpg'
+    postprocess = True; colorize = True
     foutname = fnum+'-out.jpg'
 
+    # input image: either local file or uri
+    if 'file' in request.files:
+        try:
+            request.files['file'].save(fnum+'.jpg')
+            finname = fnum+'.jpg'
+            print('files: ',request.files)
+            print(request.files['file'])
+        except:
+            pass
+
+    if request.json and 'uri' in request.json.keys():
+        uri = request.json['uri']
+        try: 
+            data = requests.get(uri).content
+            with open(fnum+'.jpg','wb') as handler:
+                handler.write(data)
+            finname = fnum+'.jpg'
+        except:
+            pass
+
+    # postprocess
+    if 'postprocess' in request.form.keys():
+        postprocess = bool(request.form.getlist('postprocess')[0])
+
+    if request.json and 'postprocess' in request.json.keys():
+        postprocess = bool(request.json['postprocess'])
+
+
+    # colorize
+    if 'colorize' in request.form.keys():
+        colorize = bool(request.form.getlist('colorize')[0])
+    
+    if request.json and 'colorize' in request.json.keys():
+        colorize = bool(request.json['colorize'])
+
+
     args = Namespace(image=finname,
-            weight='../log/store/G',
+            weight='log/store/G',
             postprocess=postprocess,colorize=colorize,
             save=foutname)
 
@@ -42,9 +64,16 @@ def process_image():
     if args.save:
         mpimg.imsave(args.save,np.array(result).astype(np.uint8))
 
-    callback = send_file(foutname,mimetype='image/jpg')
 
-    return callback, 200
+    try:
+        callback = send_file(foutname,mimetype='image/jpg')
+        return callback, 200
+    except:
+        return {'message': 'input error'}, 400
+    finally:
+        os.system('rm '+foutname)
+        if finname != 'resources/30939153.jpg':
+            os.system('rm '+finname)
 
 
 if __name__ == "__main__":
