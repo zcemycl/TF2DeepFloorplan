@@ -59,6 +59,11 @@ curl --request POST -F "file=@/home/yui/Pictures/4plan/tmp.jpeg;type=image/jpeg"
   -F "postprocess=0" -F "colorize=0"  http://0.0.0.0:1111/process --output out.jpg
 ```
 
+## Google Colab 
+1. Click on [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) and authorize access.
+2. Run the first code cell for installation.
+3. Go to Runtime Tab, click on Restart runtime. This ensures the packages installed are enabled.
+4. Run the rest of the notebook.
 
 ## Results
 - From `train.py` and `tensorboard`.
