@@ -2,11 +2,14 @@ import tensorflow as tf
 import cv2
 import pdb
 import numpy as np
+import os
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+
 #print('Is gpu available: ',tf.test.is_gpu_available());
 
 def conv2d(dim,size=3,stride=1,rate=1,pad='same',act='relu'):
@@ -182,7 +185,8 @@ if __name__ == "__main__":
     x = np.expand_dims(x,axis=0)
     x = preprocess_input(x)
 
-    model = deepfloorplanModel()
-    logits_r,logits_cw = model(x)
+    with tf.device('/cpu:0'):
+        model = deepfloorplanModel()
+        logits_r,logits_cw = model(x)
     pdb.set_trace()
 
