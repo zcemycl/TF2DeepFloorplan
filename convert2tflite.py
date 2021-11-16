@@ -4,7 +4,7 @@ import argparse
 def converter(config):
     model=tf.keras.models.load_model(config.modeldir)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    if not config.quantize:
+    if config.quantize:
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.experimental_new_converter = True
     tflite_model = converter.convert()
