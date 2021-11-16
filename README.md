@@ -17,30 +17,40 @@ pip install -r requirements.txt
 3. Run the `train.py` file  to initiate the training, model weight is stored as `log/store/G`, 
 ```
 python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
-[--logdir 'log/store'][--saveTensorInterval 10][--saveModelInterval 20]
+[--logdir 'log/store'][--modeldir 'model/store']
+[--saveTensorInterval 10][--saveModelInterval 20]
 ```
 - for example,
 ```
-python train.py --batchsize=8 --lr=1e-4 --epochs=60 --logdir=log/store
+python train.py --batchsize=8 --lr=1e-4 --epochs=60 
+--logdir=log/store --modeldir=model/store
 ```
 4. Run Tensorboard to view the progress of loss and images via, 
 ```
 tensorboard --logdir=log/store
 ```
-5. Download and unzip model from google drive, 
+5. Convert model to tflite via `convert2tflite.py`.
+```
+python convert2tflite.py [--modeldir model/store]
+[--tflitedir model/store/model.tflite]
+```
+6. Download and unzip model from google drive, 
 ```
 gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON
 unzip log.zip 
 ```
-6. Deploy the model via `deploy.py`,
+7. Deploy the model via `deploy.py`, please be aware that load method parameter should match with weight input.
 ```
-python deploy.py [--image 'path/to/image'][--weight 'log/store/G']
+python deploy.py [--image 'path/to/image']
 [--postprocess][--colorize][--save 'path/to/output_image']
+[--loadmethod 'log'/'pb'/'tflite']
+[--weight 'log/store/G'/'model/store'/'model/store/model.tflite']
+
 ```
 - for example,
 ```
 python deploy.py --image floorplan.jpg --weight log/store/G 
---postprocess --colorize --save output.jpg
+--postprocess --colorize --save output.jpg --loadmethod log
 ```
 
 ## Docker for API
