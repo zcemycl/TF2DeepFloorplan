@@ -69,6 +69,7 @@ def main(config):
         # save model
         if epoch%config.saveModelInterval == 0:
             model.save_weights(config.logdir+'/G')
+            model.save(config.modeldir)
             print('[INFO] Saving Model ...')
 
     pdb.set_trace()
@@ -80,6 +81,7 @@ if __name__ == "__main__":
     p.add_argument('--wd',type=float,default=1e-5)
     p.add_argument('--epochs',type=int,default=1000)
     p.add_argument('--logdir',type=str,default='log/store')
+    p.add_argument('--modeldir',type=str,default='model/store')
     p.add_argument('--saveTensorInterval',type=int,default=10)
     p.add_argument('--saveModelInterval',type=int,default=20)
     args = p.parse_args()
