@@ -52,7 +52,7 @@ def process_image():
 
 
     args = Namespace(image=finname,
-            weight='log/store/G',
+            weight='log/store/G',loadmethod='log',
             postprocess=postprocess,colorize=colorize,
             save=foutname)
 
