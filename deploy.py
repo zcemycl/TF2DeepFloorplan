@@ -111,14 +111,14 @@ def main(config):
     if config.loadmethod == "log":
         logits_cw,logits_r = predict(model,img,shp)
     elif config.loadmethod == "pb":
-        logits_cw,logits_r = model(img)
+        logits_r,logits_cw = model(img)
     elif config.loadmethod == "tflite":
         input_details = model.get_input_details()
         output_details = model.get_output_details()
         model.set_tensor(input_details[0]['index'],img)
         model.invoke()
-        logits_cw = model.get_tensor(output_details[0]['index'])
-        logits_r = model.get_tensor(output_details[1]['index'])
+        logits_r = model.get_tensor(output_details[0]['index'])
+        logits_cw = model.get_tensor(output_details[1]['index'])
         logits_cw = tf.convert_to_tensor(logits_cw)
         logits_r = tf.convert_to_tensor(logits_r)
     logits_r = tf.image.resize(logits_r,shp[:2])
