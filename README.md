@@ -33,6 +33,7 @@ tensorboard --logdir=log/store
 ```
 python convert2tflite.py [--modeldir model/store]
 [--tflitedir model/store/model.tflite]
+[--quantize]
 ```
 6. Download and unzip model from google drive, 
 ```
