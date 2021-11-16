@@ -15,15 +15,22 @@ from rgb_ind_convertor import *
 from util import *
 
 def init(config):
-    model = deepfloorplanModel()
-    model.load_weights(config.weight)
+    if config.loadmethod == 'log':
+        model = deepfloorplanModel()
+        model.load_weights(config.weight)
+    elif config.loadmethod == 'pb':
+        model = tf.keras.models.load_model(config.weight)
+    elif config.loadmethod == 'tflite':
+        model = tf.lite.Interpreter(model_path=config.weight)
+        model.allocate_tensors()
     img = mpimg.imread(config.image)
     shp = img.shape
     img = tf.convert_to_tensor(img,dtype=tf.uint8)
     img = tf.image.resize(img,[512,512])
     img = tf.cast(img,dtype=tf.float32)
     img = tf.reshape(img,[-1,512,512,3])/255
-    
+    if config.loadmethod == 'tflite':
+        return model,img,shp
     model.trainable = False
     model.vgg16.trainable = False
     return model,img,shp
@@ -63,9 +70,6 @@ def predict(model,img,shp):
     del featuresrbp
     logits_r = tf.keras.backend.resize_images(model.rtpfinal(x),
                 2,2,'channels_last')
-    #pdb.set_trace()
-    logits_r = tf.image.resize(logits_r,shp[:2])
-    logits_cw = tf.image.resize(logits_cw,shp[:2])
     del model.rtpfinal
     
     return logits_cw,logits_r
@@ -104,7 +108,21 @@ def colorize(r,cw):
 
 def main(config):
     model,img,shp = init(config)
-    logits_cw,logits_r = predict(model,img,shp)
+    if config.loadmethod == "log":
+        logits_cw,logits_r = predict(model,img,shp)
+    elif config.loadmethod == "pb":
+        logits_cw,logits_r = model(img)
+    elif config.loadmethod == "tflite":
+        input_details = model.get_input_details()
+        output_details = model.get_output_details()
+        model.set_tensor(input_details[0]['index'],img)
+        model.invoke()
+        logits_cw = model.get_tensor(output_details[0]['index'])
+        logits_r = model.get_tensor(output_details[1]['index'])
+        logits_cw = tf.convert_to_tensor(logits_cw)
+        logits_r = tf.convert_to_tensor(logits_r)
+    logits_r = tf.image.resize(logits_r,shp[:2])
+    logits_cw = tf.image.resize(logits_cw,shp[:2])
     r = convert_one_hot_to_image(logits_r)[0].numpy()
     cw = convert_one_hot_to_image(logits_cw)[0].numpy()
 
@@ -132,6 +150,7 @@ if __name__ == "__main__":
     p.add_argument('--weight',type=str,default='log/store/G')
     p.add_argument('--postprocess',action='store_true')
     p.add_argument('--colorize',action='store_true')
+    p.add_argument('--loadmethod',type=str,default='log',choices=['log','tflite','pb']) #log,tflite,pb
     p.add_argument('--save',type=str)
     args = p.parse_args()
     print('------------',args)
@@ -143,4 +162,4 @@ if __name__ == "__main__":
 
     plt.imshow(result);plt.xticks([]);plt.yticks([]);plt.grid(False)
     plt.show()
-
+    pdb.set_trace()
