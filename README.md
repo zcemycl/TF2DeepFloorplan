@@ -37,11 +37,11 @@ python convert2tflite.py [--modeldir model/store]
 ```
 6. Download and unzip model from google drive, 
 ```
-gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON # log files
+gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON # log files 112.5mb
 unzip log.zip 
-gdown https://drive.google.com/uc?id=1tuqUPbiZnuubPFHMQqCo1_kFNKq4hU8i # pb files
+gdown https://drive.google.com/uc?id=1tuqUPbiZnuubPFHMQqCo1_kFNKq4hU8i # pb files 107.3mb
 unzip model.zip
-gdown https://drive.google.com/uc?id=1B-Fw-zgufEqiLm00ec2WCMUo5E6RY2eO # tfilte file
+gdown https://drive.google.com/uc?id=1B-Fw-zgufEqiLm00ec2WCMUo5E6RY2eO # tfilte file 37.1mb
 unzip tflite.zip
 ```
 7. Deploy the model via `deploy.py`, please be aware that load method parameter should match with weight input.
