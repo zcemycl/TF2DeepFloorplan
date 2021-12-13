@@ -13,7 +13,7 @@ The code has been tested under the environment of Python 3.7.4 with tensorflow-g
 ```
 pip install -r requirements.txt
 ```
-2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`. Friendly reminder: there is another dataset r2v used to train their original repo's model, I did not use it here. 
+2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`. Friendly reminder: there is another dataset r2v used to train their original repo's model, I did not use it here cos of limited access. 
 3. Run the `train.py` file  to initiate the training, model weight is stored as `log/store/G`, 
 ```
 python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
