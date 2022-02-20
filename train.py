@@ -11,6 +11,8 @@ os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 def init(config):
     dataset = loadDataset()
     model = deepfloorplanModel()
+    if config.weight:
+        model.load_weights(config.weight)
     #optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,weight_decay=config.wd)
     optim = tf.keras.optimizers.Adam(learning_rate=config.lr)
     return dataset,model,optim
@@ -82,6 +84,7 @@ if __name__ == "__main__":
     p.add_argument('--epochs',type=int,default=1000)
     p.add_argument('--logdir',type=str,default='log/store')
     p.add_argument('--modeldir',type=str,default='model/store')
+    p.add_argument('--weight',type=str)
     p.add_argument('--saveTensorInterval',type=int,default=10)
     p.add_argument('--saveModelInterval',type=int,default=20)
     args = p.parse_args()
