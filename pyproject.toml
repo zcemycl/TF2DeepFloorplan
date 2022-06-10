@@ -6,6 +6,7 @@ exclude = '''
   | \.mypy_cache
   | \.nox
   | build
+  | venv
   | dist 
   | \.eggs
 )/
