@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import preprocess_input
 
-from net import deepfloorplanModel
+from dfp.net import deepfloorplanModel
 
 
 class TestCase(unittest.TestCase):
