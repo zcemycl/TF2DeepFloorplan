@@ -62,7 +62,7 @@ python dfp/deploy.py --image floorplan.jpg --weight log/store/G
 ```
 
 ## Docker for API
-1. Build and run docker container. 
+1. Build and run docker container. (Please train your weight, google drive does not work currently due to its update.)
 ```
 docker build -t tf_docker -f Dockerfile .
 docker run -d -p 1111:1111 tf_docker:latest 
@@ -71,11 +71,15 @@ docker run --gpus all -d -p 1111:1111 tf_docker:latest
 2. Call the api for output.
 ```
 curl -H "Content-Type: application/json" --request POST  \
-  -d '{"uri":"https://cdn.cnn.com/cnnnext/dam/assets/200212132008-04-london-rental-market-intl-exlarge-169.jpg","colorize":1,"postprocess":0}'  \
-  http://0.0.0.0:1111/process --output out.jpg 
-curl --request POST -F "file=@/home/yui/Pictures/4plan/tmp.jpeg;type=image/jpeg" \
-  -F "postprocess=0" -F "colorize=0"  http://0.0.0.0:1111/process --output out.jpg
+  -d '{"uri":"https://cdn.cnn.com/cnnnext/dam/assets/200212132008-04-london-rental-market-intl-exlarge-169.jpg","colorize":1,"postprocess":0, "output":"/tmp"}' \
+  http://0.0.0.0:1111/process --output /tmp/tmp.jpg
+
+
+curl --request POST -F "file=@resources/30939153.jpg;type=image/jpeg" \
+  -F "postprocess=0" -F "colorize=0" -F "output=/tmp" http://0.0.0.0:1111/process --output out.jpg
 ```
+3. If you run `app.py` without docker, the second curl for file upload will not work. 
+
 
 ## Google Colab 
 1. Click on [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) and authorize access.

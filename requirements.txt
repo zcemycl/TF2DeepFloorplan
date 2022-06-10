@@ -8,7 +8,7 @@ tensorflow-model-optimization
 scipy==1.4.1
 Pillow==8.0.1
 gdown==3.13.0
-Flask==1.1.2
+Flask==2.0.0
 Flask-Bcrypt==0.7.1
 Flask-Classful==0.14.2
 Flask-Cors==3.0.10

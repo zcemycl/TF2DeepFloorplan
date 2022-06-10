@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
 from rgb_ind_convertor import floorplan_fuse_map
 
 
