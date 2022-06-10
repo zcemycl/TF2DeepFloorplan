@@ -7,6 +7,7 @@ RUN apt-get -y update && apt-get install -y \
         ffmpeg
 
 COPY requirements.txt /
+RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r /requirements.txt
 RUN gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON
 RUN unzip log.zip

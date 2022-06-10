@@ -11,18 +11,21 @@ The code has been tested under the environment of Python 3.7.4 with tensorflow-g
 ## How to run?
 1. Install packages via `pip` and `requirements.txt`.
 ```
+python -m venv venv
+source venv/bin/activate
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`. Friendly reminder: there is another dataset r2v used to train their original repo's model, I did not use it here cos of limited access. Please see the link here [https://github.com/zlzeng/DeepFloorplan/issues/17](https://github.com/zlzeng/DeepFloorplan/issues/17).
 3. Run the `train.py` file  to initiate the training, model checkpoint is stored as `log/store/G` and weight is in `model/store`, 
 ```
-python train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
+python dfp/train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--modeldir 'model/store']
 [--saveTensorInterval 10][--saveModelInterval 20]
 ```
 - for example,
 ```
-python train.py --batchsize=8 --lr=1e-4 --epochs=60 
+python dfp/train.py --batchsize=8 --lr=1e-4 --epochs=60 
 --logdir=log/store --modeldir=model/store
 ```
 4. Run Tensorboard to view the progress of loss and images via, 
@@ -31,7 +34,7 @@ tensorboard --logdir=log/store
 ```
 5. Convert model to tflite via `convert2tflite.py`.
 ```
-python convert2tflite.py [--modeldir model/store]
+python dfp/convert2tflite.py [--modeldir model/store]
 [--tflitedir model/store/model.tflite]
 [--quantize]
 ```
@@ -46,7 +49,7 @@ unzip tflite.zip
 ```
 7. Deploy the model via `deploy.py`, please be aware that load method parameter should match with weight input.
 ```
-python deploy.py [--image 'path/to/image']
+python dfp/deploy.py [--image 'path/to/image']
 [--postprocess][--colorize][--save 'path/to/output_image']
 [--loadmethod 'log'/'pb'/'tflite']
 [--weight 'log/store/G'/'model/store'/'model/store/model.tflite']
@@ -54,7 +57,7 @@ python deploy.py [--image 'path/to/image']
 ```
 - for example,
 ```
-python deploy.py --image floorplan.jpg --weight log/store/G 
+python dfp/deploy.py --image floorplan.jpg --weight log/store/G 
 --postprocess --colorize --save output.jpg --loadmethod log
 ```
 

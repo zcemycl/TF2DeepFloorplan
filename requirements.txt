@@ -16,4 +16,7 @@ Flask-Ext==0.1
 Flask-Jsonpify==1.5.0
 Flask-Markdown==0.3
 Flask-WTF==0.14.3
-
+flake8
+pytest
+black
+isort
