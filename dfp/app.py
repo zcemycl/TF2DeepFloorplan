@@ -6,9 +6,8 @@ from argparse import Namespace
 import matplotlib.image as mpimg
 import numpy as np
 import requests
-from flask import Flask, request, send_file
-
 from deploy import main
+from flask import Flask, request, send_file
 
 app = Flask(__name__)
 
@@ -20,18 +19,21 @@ def process_image():
     postprocess = True
     colorize = True
     foutname = fnum + "-out.jpg"
+    output = "/tmp"
 
     # input image: either local file or uri
     if "file" in request.files:
+        print("File mode...")
         try:
             request.files["file"].save(fnum + ".jpg")
             finname = fnum + ".jpg"
             print("files: ", request.files)
             print(request.files["file"])
         except KeyError:
-            pass
+            print("KeyError!")
 
     if request.json and "uri" in request.json.keys():
+        print("URI mode...")
         uri = request.json["uri"]
         try:
             data = requests.get(uri).content
@@ -39,21 +41,33 @@ def process_image():
                 handler.write(data)
             finname = fnum + ".jpg"
         except KeyError:
-            pass
+            print("KeyError!")
 
     # postprocess
     if "postprocess" in request.form.keys():
-        postprocess = bool(request.form.getlist("postprocess")[0])
+        print("Detect postprocess mode 1...")
+        print(request.form.getlist("postprocess")[0])
+        postprocess = bool(int(request.form.getlist("postprocess")[0]))
 
     if request.json and "postprocess" in request.json.keys():
+        print("Detect postprocess mode 2...")
         postprocess = bool(request.json["postprocess"])
 
     # colorize
     if "colorize" in request.form.keys():
-        colorize = bool(request.form.getlist("colorize")[0])
+        print(request.form.getlist("colorize")[0])
+        colorize = bool(int(request.form.getlist("colorize")[0]))
 
     if request.json and "colorize" in request.json.keys():
         colorize = bool(request.json["colorize"])
+
+    # output path
+    if "output" in request.form.keys():
+        print(request.form.getlist("output")[0])
+        output = str(request.form.getlist("output")[0]).strip()
+
+    if request.json and "output" in request.json.keys():
+        output = str(request.json["output"])
 
     args = Namespace(
         image=finname,
@@ -61,8 +75,9 @@ def process_image():
         loadmethod="log",
         postprocess=postprocess,
         colorize=colorize,
-        save=foutname,
+        save=os.path.join(output, foutname),
     )
+    print(args)
 
     with mp.Pool() as pool:
         result = pool.map(main, [args])[0]
@@ -73,12 +88,14 @@ def process_image():
         mpimg.imsave(args.save, np.array(result).astype(np.uint8))
 
     try:
-        callback = send_file(foutname, mimetype="image/jpg")
+        callback = send_file(
+            os.path.join(output, foutname), mimetype="image/jpg"
+        )
         return callback, 200
-    except TypeError:
+    except FileNotFoundError:
         return {"message": "input error"}, 400
     finally:
-        os.system("rm " + foutname)
+        os.system("rm " + os.path.join(output, foutname))
         if finname != "resources/30939153.jpg":
             os.system("rm " + finname)
 
