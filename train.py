@@ -1,13 +1,19 @@
 import argparse
 import io
 import os
+import pdb
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
-import tqdm
 
-from data import *
-from loss import *
-from net import *
+from data import (
+    convert_one_hot_to_image,
+    decodeAllRaw,
+    loadDataset,
+    preprocess,
+)
+from loss import balanced_entropy, cross_two_tasks_weight
+from net import deepfloorplanModel
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -17,7 +23,8 @@ def init(config):
     model = deepfloorplanModel()
     if config.weight:
         model.load_weights(config.weight)
-    # optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,weight_decay=config.wd)
+    # optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,
+    #   weight_decay=config.wd)
     optim = tf.keras.optimizers.Adam(learning_rate=config.lr)
     return dataset, model, optim
 

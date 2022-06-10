@@ -5,13 +5,18 @@ import pdb
 import sys
 
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
-from PIL import Image
 
-from data import *
-from net import *
-from rgb_ind_convertor import *
-from util import *
+from data import convert_one_hot_to_image
+from net import deepfloorplanModel
+from rgb_ind_convertor import (
+    floorplan_boundary_map,
+    floorplan_fuse_map,
+    ind2rgb,
+)
+from util import fill_break_line, flood_fill, refine_room_region
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -57,7 +62,9 @@ def predict(model, img, shp):
         x = model.rbpups[i](x) + model.rbpcv1[i](features[i + 1])
         x = model.rbpcv2[i](x)
         featuresrbp.append(x)
-    logits_cw = tf.keras.backend.resize_images(model.rbpfinal(x), 2, 2, "channels_last")
+    logits_cw = tf.keras.backend.resize_images(
+        model.rbpfinal(x), 2, 2, "channels_last"
+    )
 
     x = features.pop(0)
     nLays = len(model.rtpups)
@@ -72,7 +79,9 @@ def predict(model, img, shp):
         x = model.non_local_context(a, x, i)
 
     del featuresrbp
-    logits_r = tf.keras.backend.resize_images(model.rtpfinal(x), 2, 2, "channels_last")
+    logits_r = tf.keras.backend.resize_images(
+        model.rtpfinal(x), 2, 2, "channels_last"
+    )
     del model.rtpfinal
 
     return logits_cw, logits_r
@@ -159,7 +168,10 @@ if __name__ == "__main__":
     p.add_argument("--postprocess", action="store_true")
     p.add_argument("--colorize", action="store_true")
     p.add_argument(
-        "--loadmethod", type=str, default="log", choices=["log", "tflite", "pb"]
+        "--loadmethod",
+        type=str,
+        default="log",
+        choices=["log", "tflite", "pb"],
     )  # log,tflite,pb
     p.add_argument("--save", type=str)
     args = p.parse_args()

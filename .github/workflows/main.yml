@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install matplotlib numpy opencv-python pdbpp tensorboard tensorflow-cpu scipy Pillow gdown isort black
+          pip install matplotlib numpy opencv-python pdbpp tensorboard tensorflow-cpu scipy Pillow gdown isort black flake8
 
       - name: Sort Import
         run: |
@@ -43,6 +43,10 @@ jobs:
           black *.py
           black utils/*.py
           black tests/*.py
+
+      - name: Check standard coding style (PEP8)
+        run: |
+          flake8 .
 
       # Test python scripts
       - name: Test with pytest

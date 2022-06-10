@@ -1,11 +1,9 @@
 import os
 import pdb
 
-import cv2
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
-from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing import image
 
@@ -30,13 +28,17 @@ def conv2d(dim, size=3, stride=1, rate=1, pad="same", act="relu"):
 
 def max_pool2d(size=2, stride=2, pad="valid"):
     result = tf.keras.Sequential()
-    result.add(tf.keras.layers.MaxPool2D(pool_size=size, strides=stride, padding=pad))
+    result.add(
+        tf.keras.layers.MaxPool2D(pool_size=size, strides=stride, padding=pad)
+    )
     return result
 
 
 def upconv2d(dim, size=4, stride=2, pad="same", act="relu"):
     result = tf.keras.Sequential()
-    result.add(tf.keras.layers.Conv2DTranspose(dim, size, strides=stride, padding=pad))
+    result.add(
+        tf.keras.layers.Conv2DTranspose(dim, size, strides=stride, padding=pad)
+    )
     if act == "relu":
         result.add(tf.keras.layers.ReLU())
     return result
@@ -67,7 +69,9 @@ class deepfloorplanModel(Model):
         # attention map
         self.atts1 = [conv2d(dim=dimlist[i]) for i in range(len(dimlist))]
         self.atts2 = [conv2d(dim=dimlist[i]) for i in range(len(dimlist))]
-        self.atts3 = [conv2d(dim=1, size=1, act="sigmoid") for i in range(len(dimlist))]
+        self.atts3 = [
+            conv2d(dim=1, size=1, act="sigmoid") for i in range(len(dimlist))
+        ]
 
         # reduce the tensor depth
         self.xs1 = [conv2d(dim=d) for d in dimlist]
@@ -119,7 +123,8 @@ class deepfloorplanModel(Model):
         ]
         # diagonal flip
         self.dfs = [
-            self.constant_kernel((d, d, 1, 1), diag=True, flip=True) for d in dak
+            self.constant_kernel((d, d, 1, 1), diag=True, flip=True)
+            for d in dak
         ]
         self.dff = [
             tf.keras.layers.Conv2D(

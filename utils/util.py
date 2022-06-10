@@ -8,7 +8,9 @@ def fast_hist(im, gt, n=9):
     n is num_of_classes
     """
     k = (gt >= 0) & (gt < n)
-    return np.bincount(n * gt[k].astype(int) + im[k], minlength=n**2).reshape(n, n)
+    return np.bincount(
+        n * gt[k].astype(int) + im[k], minlength=n**2
+    ).reshape(n, n)
 
 
 def flood_fill(test_array, h_max=255):
@@ -27,7 +29,8 @@ def flood_fill(test_array, h_max=255):
     while not np.array_equal(output_old_array, output_array):
         output_old_array = np.copy(output_array)
         output_array = np.maximum(
-            input_array, ndimage.grey_erosion(output_array, size=(3, 3), footprint=el)
+            input_array,
+            ndimage.grey_erosion(output_array, size=(3, 3), footprint=el),
         )
     return output_array
 
@@ -73,7 +76,9 @@ def refine_room_region(cw_mask, rm_ind):
         if area < 100:
             continue
         else:
-            room_types, type_counts = np.unique(mask * rm_ind, return_counts=True)
+            room_types, type_counts = np.unique(
+                mask * rm_ind, return_counts=True
+            )
             if len(room_types) > 1:
                 room_types = room_types[1:]
                 # ignore background type which is zero

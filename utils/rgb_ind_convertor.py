@@ -75,7 +75,3 @@ def ind2rgb(ind_im, color_map=floorplan_room_map):
         rgb_im[(ind_im == i)] = rgb
 
     return rgb_im.astype(int)
-
-
-def unscale_imsave(path, im, cmin=0, cmax=255):
-    toimage(im, cmin=cmin, cmax=cmax).save(path)

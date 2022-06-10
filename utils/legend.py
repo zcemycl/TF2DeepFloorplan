@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
-from rgb_ind_convertor import *
+from rgb_ind_convertor import floorplan_fuse_map
 
 
 def export_legend(legend, filename="legend.png", expand=[-5, -5, 5, 5]):
@@ -12,9 +13,15 @@ def export_legend(legend, filename="legend.png", expand=[-5, -5, 5, 5]):
     fig.savefig(filename, dpi="figure", bbox_inches=bbox)
 
 
+def norm255to1(x):
+    return [p / 255 for p in x]
+
+
+def f(m, c):
+    plt.plot([], [], marker=m, color=c, ls="none")[0]
+
+
 if __name__ == "__main__":
-    over255 = lambda x: [p / 255 for p in x]
-    f = lambda m, c: plt.plot([], [], marker=m, color=c, ls="none")[0]
     colors = [
         "background",
         "closet",
@@ -28,7 +35,7 @@ if __name__ == "__main__":
         "door/window",
         "wall",
     ]
-    colors2 = [over255(rgb) for rgb in list(floorplan_fuse_map.values())]
+    colors2 = [norm255to1(rgb) for rgb in list(floorplan_fuse_map.values())]
     handles = [f("s", colors2[i]) for i in range(len(colors))]
     labels = colors
     legend = plt.legend(handles, labels, loc=3, framealpha=1, frameon=True)

@@ -1,12 +1,14 @@
-import argparse
 import multiprocessing as mp
+import os
 import random
 from argparse import Namespace
 
+import matplotlib.image as mpimg
+import numpy as np
 import requests
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, request, send_file
 
-from deploy import *
+from deploy import main
 
 app = Flask(__name__)
 
@@ -26,7 +28,7 @@ def process_image():
             finname = fnum + ".jpg"
             print("files: ", request.files)
             print(request.files["file"])
-        except:
+        except KeyError:
             pass
 
     if request.json and "uri" in request.json.keys():
@@ -36,7 +38,7 @@ def process_image():
             with open(fnum + ".jpg", "wb") as handler:
                 handler.write(data)
             finname = fnum + ".jpg"
-        except:
+        except KeyError:
             pass
 
     # postprocess
@@ -73,7 +75,7 @@ def process_image():
     try:
         callback = send_file(foutname, mimetype="image/jpg")
         return callback, 200
-    except:
+    except TypeError:
         return {"message": "input error"}, 400
     finally:
         os.system("rm " + foutname)
