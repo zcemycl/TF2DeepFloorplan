@@ -36,8 +36,8 @@ jobs:
 
       - name: Sort Import
         run: |
-          isort
-          
+          isort .
+
       # Test python scripts
       - name: Test with pytest
         run: |
