@@ -40,8 +40,8 @@ jobs:
 
       - name: Reformat scripts via Black
         run: |
-          black *.py
-          black utils/*.py
+          black dfp/*.py
+          black dfp/utils/*.py
           black tests/*.py
 
       - name: Check standard coding style (PEP8)
