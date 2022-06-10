@@ -76,4 +76,3 @@ def ind2rgb(ind_im, color_map=floorplan_room_map):
 
 def unscale_imsave(path, im, cmin=0, cmax=255):
     toimage(im, cmin=cmin, cmax=cmax).save(path)
-

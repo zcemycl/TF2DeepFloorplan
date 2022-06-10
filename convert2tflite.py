@@ -1,5 +1,7 @@
-import tensorflow as tf
 import argparse
+
+import tensorflow as tf
+
 
 def converter(config):
     model=tf.keras.models.load_model(config.modeldir)
@@ -19,4 +21,3 @@ if __name__ == "__main__":
     p.add_argument('--quantize',action='store_true')
     args = p.parse_args()
     converter(args)
-

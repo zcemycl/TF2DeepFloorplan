@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
+
 from rgb_ind_convertor import *
+
 
 def export_legend(legend, filename="legend.png", expand=[-5,-5,5,5]):
     fig  = legend.figure

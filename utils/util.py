@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from scipy import ndimage
 
+
 def fast_hist(im, gt, n=9):
     """
     n is num_of_classes
@@ -71,4 +72,3 @@ def refine_room_region(cw_mask, rm_ind):
             new_rm_ind += mask*room_types[np.argmax(type_counts)]
 
     return new_rm_ind
-

@@ -1,10 +1,12 @@
-from flask import Flask, jsonify, request, send_file
-from deploy import *
 import argparse
-from argparse import Namespace
 import multiprocessing as mp
 import random
+from argparse import Namespace
+
 import requests
+from flask import Flask, jsonify, request, send_file
+
+from deploy import *
 
 app = Flask(__name__)
 
@@ -78,4 +80,3 @@ def process_image():
 
 if __name__ == "__main__":
     app.run(debug=True,host='0.0.0.0',port=1111)
-

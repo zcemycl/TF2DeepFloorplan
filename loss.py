@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def cross_two_tasks_weight(y1,y2):
     p1,p2=tf.keras.backend.sum(y1),tf.keras.backend.sum(y2)
     w1,w2 = p2/(p1+p2),p1/(p1+p2)

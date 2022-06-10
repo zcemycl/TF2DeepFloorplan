@@ -1,13 +1,14 @@
-import tensorflow as tf
-import cv2
-import pdb
-import numpy as np
 import os
-from tensorflow.keras.applications.vgg16 import VGG16
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.vgg16 import preprocess_input
+import pdb
+
+import cv2
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing import image
+
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 #print('Is gpu available: ',tf.test.is_gpu_available());
@@ -189,4 +190,3 @@ if __name__ == "__main__":
         model = deepfloorplanModel()
         logits_r,logits_cw = model(x)
     pdb.set_trace()
-

@@ -1,5 +1,7 @@
 import unittest
+
 from net import *
+
 
 class TestCase(unittest.TestCase):
     def test_shape(self):
@@ -13,5 +15,3 @@ class TestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

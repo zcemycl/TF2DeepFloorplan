@@ -1,18 +1,21 @@
+import argparse
+import gc
+import os
+import pdb
+import sys
+
+import matplotlib.image as mpimg
 import tensorflow as tf
 from PIL import Image
-from net import *
+
 from data import *
-import matplotlib.image as mpimg
-import os
-import gc
-import sys
-import argparse
-import pdb
+from net import *
+from rgb_ind_convertor import *
+from util import *
+
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 sys.path.append('./utils/')
-from rgb_ind_convertor import *
-from util import *
 
 def init(config):
     if config.loadmethod == 'log':

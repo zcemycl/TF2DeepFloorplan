@@ -1,11 +1,14 @@
-import tensorflow as tf
-import io
-import tqdm
-from net import *
-from loss import *
-from data import *
 import argparse
+import io
 import os
+
+import tensorflow as tf
+import tqdm
+
+from data import *
+from loss import *
+from net import *
+
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
 def init(config):
@@ -89,10 +92,3 @@ if __name__ == "__main__":
     p.add_argument('--saveModelInterval',type=int,default=20)
     args = p.parse_args()
     main(args)
-
-
-
-
-
-
-
