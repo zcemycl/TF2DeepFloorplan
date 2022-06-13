@@ -2,8 +2,9 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
-from dfp.net import deepfloorplanModel
 from tensorflow.keras.applications.vgg16 import preprocess_input
+
+from dfp.net import deepfloorplanModel
 
 
 class TestCase(unittest.TestCase):

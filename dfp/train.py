@@ -1,7 +1,6 @@
 import argparse
 import io
 import os
-import pdb
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -13,6 +12,9 @@ from data import (
 )
 from loss import balanced_entropy, cross_two_tasks_weight
 from net import deepfloorplanModel
+
+# import pdb
+
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -108,7 +110,7 @@ def main(config):
             model.save(config.modeldir)
             print("[INFO] Saving Model ...")
 
-    pdb.set_trace()
+    # pdb.set_trace()
 
 
 if __name__ == "__main__":

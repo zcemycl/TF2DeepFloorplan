@@ -7,7 +7,7 @@ exclude = '''
   | \.nox
   | build
   | venv
-  | dist 
+  | dist
   | \.eggs
 )/
 '''

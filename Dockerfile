@@ -1,7 +1,7 @@
-FROM tensorflow/tensorflow:latest-gpu-py3  
+FROM tensorflow/tensorflow:latest-gpu-py3
 
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
-RUN apt-get -y update 
+RUN apt-get -y update
 RUN apt-get install -y python3-pip software-properties-common wget ffmpeg
 
 COPY requirements.txt /

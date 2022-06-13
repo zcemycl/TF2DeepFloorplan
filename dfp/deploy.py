@@ -1,7 +1,8 @@
 import argparse
 import gc
 import os
-import pdb
+
+# import pdb
 import sys
 
 import matplotlib.image as mpimg
@@ -186,4 +187,4 @@ if __name__ == "__main__":
     plt.yticks([])
     plt.grid(False)
     plt.show()
-    pdb.set_trace()
+    # pdb.set_trace()
