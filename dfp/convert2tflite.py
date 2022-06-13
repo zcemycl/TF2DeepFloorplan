@@ -3,7 +3,7 @@ import argparse
 import tensorflow as tf
 
 
-def converter(config):
+def converter(config: argparse.Namespace):
     model = tf.keras.models.load_model(config.modeldir)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     if config.quantize:
