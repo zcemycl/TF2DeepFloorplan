@@ -1,11 +1,13 @@
 import os
-import pdb
 
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing import image
+
+# import pdb
+
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -229,4 +231,4 @@ if __name__ == "__main__":
     with tf.device("/cpu:0"):
         model = deepfloorplanModel()
         logits_r, logits_cw = model(x)
-    pdb.set_trace()
+    # pdb.set_trace()

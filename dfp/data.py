@@ -1,4 +1,4 @@
-import pdb
+# import pdb
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -63,5 +63,5 @@ if __name__ == "__main__":
             plt.imshow(convert_one_hot_to_image(hb)[0].numpy())
             plt.show()
 
-            pdb.set_trace()
+            # pdb.set_trace()
             break
