@@ -1,7 +1,9 @@
 import argparse
 import io
 import os
+from typing import Tuple
 
+import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from data import (
@@ -19,7 +21,9 @@ from net import deepfloorplanModel
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
-def init(config: argparse.Namespace):
+def init(
+    config: argparse.Namespace,
+) -> Tuple[tf.data.Dataset, tf.keras.Model, tf.keras.optimizers]:
     dataset = loadDataset()
     model = deepfloorplanModel()
     if config.weight:
@@ -30,7 +34,7 @@ def init(config: argparse.Namespace):
     return dataset, model, optim
 
 
-def plot_to_image(figure):
+def plot_to_image(figure: matplotlib.figure.Figure) -> tf.Tensor:
     buf = io.BytesIO()
     plt.savefig(buf, format="png")
     plt.close(figure)
@@ -40,7 +44,13 @@ def plot_to_image(figure):
     return image
 
 
-def image_grid(img, bound, room, logr, logcw):
+def image_grid(
+    img: tf.Tensor,
+    bound: tf.Tensor,
+    room: tf.Tensor,
+    logr: tf.Tensor,
+    logcw: tf.Tensor,
+) -> matplotlib.figure.Figure:
     figure = plt.figure()
     plt.subplot(2, 3, 1)
     plt.imshow(img[0].numpy())
@@ -70,7 +80,7 @@ def image_grid(img, bound, room, logr, logcw):
     return figure
 
 
-def main(config):
+def main(config: argparse.Namespace):
     # initialization
     writer = tf.summary.create_file_writer(config.logdir)
     pltiter = 0
