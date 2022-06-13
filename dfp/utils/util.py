@@ -3,7 +3,7 @@ import numpy as np
 from scipy import ndimage
 
 
-def fast_hist(im, gt, n: int = 9):
+def fast_hist(im: np.ndarray, gt: np.ndarray, n: int = 9) -> np.ndarray:
     """
     n is num_of_classes
     """
@@ -35,7 +35,7 @@ def flood_fill(test_array: np.ndarray, h_max: int = 255) -> np.ndarray:
     return output_array
 
 
-def fill_break_line(cw_mask):
+def fill_break_line(cw_mask: np.ndarray) -> np.ndarray:
     broken_line_h = np.array(
         [
             [0, 0, 0, 0, 0],
@@ -66,7 +66,7 @@ def fill_break_line(cw_mask):
     return cw_mask
 
 
-def refine_room_region(cw_mask, rm_ind):
+def refine_room_region(cw_mask: np.ndarray, rm_ind: np.ndarray) -> np.ndarray:
     label_rm, num_label = ndimage.label((1 - cw_mask))
     new_rm_ind = np.zeros(rm_ind.shape)
     for j in range(1, num_label + 1):
