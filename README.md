@@ -109,7 +109,22 @@ model = net.deepfloorplanModel()
 pip install -r requirements.txt
 pip install pre-commit
 pre-commit install
+pre-commit run --all-files
+# pre-commit uninstall/ pip uninstall pre-commit
 ```
+3. Create issues. Maintainer will decide if it requires branch. If so,
+```
+git fetch origin
+git checkout xx-features
+```
+4. After push, merge, pull request, the issue is solved and the branch is deleted. You can,
+```
+git checkout main
+git pull
+git remote prune origin
+git branch -d xx-features
+```
+
 
 ## Results
 - From `train.py` and `tensorboard`.
