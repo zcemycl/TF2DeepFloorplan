@@ -1,4 +1,6 @@
+import argparse
 import os
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -14,7 +16,14 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 # print('Is gpu available: ',tf.test.is_gpu_available());
 
 
-def conv2d(dim, size=3, stride=1, rate=1, pad="same", act="relu"):
+def conv2d(
+    dim: int,
+    size: int = 3,
+    stride: int = 1,
+    rate: int = 1,
+    pad: str = "same",
+    act: str = "relu",
+) -> tf.keras.Sequential:
     result = tf.keras.Sequential()
     result.add(
         tf.keras.layers.Conv2D(
@@ -28,7 +37,9 @@ def conv2d(dim, size=3, stride=1, rate=1, pad="same", act="relu"):
     return result
 
 
-def max_pool2d(size=2, stride=2, pad="valid"):
+def max_pool2d(
+    size: int = 2, stride: int = 2, pad: str = "valid"
+) -> tf.keras.Sequential:
     result = tf.keras.Sequential()
     result.add(
         tf.keras.layers.MaxPool2D(pool_size=size, strides=stride, padding=pad)
@@ -36,7 +47,13 @@ def max_pool2d(size=2, stride=2, pad="valid"):
     return result
 
 
-def upconv2d(dim, size=4, stride=2, pad="same", act="relu"):
+def upconv2d(
+    dim: int,
+    size: int = 4,
+    stride: int = 2,
+    pad: str = "same",
+    act: str = "relu",
+) -> tf.keras.Sequential:
     result = tf.keras.Sequential()
     result.add(
         tf.keras.layers.Conv2DTranspose(dim, size, strides=stride, padding=pad)
@@ -46,14 +63,14 @@ def upconv2d(dim, size=4, stride=2, pad="same", act="relu"):
     return result
 
 
-def up_bilinear(dim):
+def up_bilinear(dim: int) -> tf.keras.Sequential:
     result = tf.keras.Sequential()
     result.add(conv2d(dim, size=1, act="linear"))
     return result
 
 
 class deepfloorplanModel(Model):
-    def __init__(self, config=None):
+    def __init__(self, config: argparse.Namespace = None):
         super(deepfloorplanModel, self).__init__()
         self._vgg16init()
         # room boundary prediction (rbp)
@@ -154,8 +171,14 @@ class deepfloorplanModel(Model):
         for layer in self.vgg16.layers:
             layer.trainable = False
 
-    def constant_kernel(self, shape, val=1, diag=False, flip=False):
-        k = 0
+    def constant_kernel(
+        self,
+        shape: Tuple[int, int, int, int],
+        val: int = 1,
+        diag: bool = False,
+        flip: bool = False,
+    ) -> np.ndarray:
+        k = np.array([]).astype(int)
         if not diag:
             k = val * np.ones(shape)
         else:
@@ -166,7 +189,9 @@ class deepfloorplanModel(Model):
             k = w.reshape(shape)
         return k
 
-    def non_local_context(self, t1, t2, idx, stride=4):
+    def non_local_context(
+        self, t1: tf.Tensor, t2: tf.Tensor, idx: int, stride: int = 4
+    ) -> tf.Tensor:
         N, H, W, C = t1.shape.as_list()
         hs = H // stride if (H // stride) > 1 else (stride - 1)
         vs = W // stride if (W // stride) > 1 else (stride - 1)
@@ -193,7 +218,7 @@ class deepfloorplanModel(Model):
         out = self.lrf[idx](features)
         return out
 
-    def call(self, x):
+    def call(self, x: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         features = []
         feature = x
         for layer in self.vgg16.layers:

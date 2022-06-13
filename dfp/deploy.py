@@ -4,6 +4,7 @@ import os
 
 # import pdb
 import sys
+from typing import Tuple
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -23,7 +24,9 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 sys.path.append("./utils/")
 
 
-def init(config):
+def init(
+    config: argparse.Namespace,
+) -> Tuple[tf.keras.Model, tf.Tensor, np.ndarray]:
     if config.loadmethod == "log":
         model = deepfloorplanModel()
         model.load_weights(config.weight)
@@ -45,7 +48,9 @@ def init(config):
     return model, img, shp
 
 
-def predict(model, img, shp):
+def predict(
+    model: tf.keras.Model, img: tf.Tensor, shp: np.ndarray
+) -> Tuple[tf.Tensor, tf.Tensor]:
     features = []
     feature = img
     for layer in model.vgg16.layers:
@@ -87,7 +92,9 @@ def predict(model, img, shp):
     return logits_cw, logits_r
 
 
-def post_process(rm_ind, bd_ind, shp):
+def post_process(
+    rm_ind: np.ndarray, bd_ind: np.ndarray, shp: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
     hard_c = (bd_ind > 0).astype(np.uint8)
     # region from room prediction
     rm_mask = np.zeros(rm_ind.shape)
@@ -113,13 +120,13 @@ def post_process(rm_ind, bd_ind, shp):
     return new_rm_ind, new_bd_ind
 
 
-def colorize(r, cw):
+def colorize(r: np.ndarray, cw: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     cr = ind2rgb(r, color_map=floorplan_fuse_map)
     ccw = ind2rgb(cw, color_map=floorplan_boundary_map)
     return cr, ccw
 
 
-def main(config):
+def main(config: argparse.Namespace) -> np.ndarray:
     model, img, shp = init(config)
     if config.loadmethod == "log":
         logits_cw, logits_r = predict(model, img, shp)
