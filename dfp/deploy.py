@@ -4,6 +4,7 @@ import os
 
 # import pdb
 import sys
+from typing import Tuple
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -23,7 +24,9 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 sys.path.append("./utils/")
 
 
-def init(config):
+def init(
+    config: argparse.Namespace,
+) -> Tuple[tf.keras.Model, np.ndarray, np.ndarray]:
     if config.loadmethod == "log":
         model = deepfloorplanModel()
         model.load_weights(config.weight)

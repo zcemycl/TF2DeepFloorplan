@@ -1,13 +1,17 @@
+from typing import List, Tuple
+
 import tensorflow as tf
 
 
-def cross_two_tasks_weight(y1, y2):
+def cross_two_tasks_weight(
+    y1: tf.Tensor, y2: tf.Tensor
+) -> Tuple[tf.Tensor, tf.Tensor]:
     p1, p2 = tf.keras.backend.sum(y1), tf.keras.backend.sum(y2)
     w1, w2 = p2 / (p1 + p2), p1 / (p1 + p2)
     return w1, w2
 
 
-def balanced_entropy(x, y):
+def balanced_entropy(x: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
     eps = 1e-6
     z = tf.keras.activations.softmax(x)
     cliped_z = tf.keras.backend.clip(z, eps, 1 - eps)
@@ -17,11 +21,13 @@ def balanced_entropy(x, y):
     ind = tf.keras.backend.argmax(y, axis=-1)
     total = tf.keras.backend.sum(y)
 
-    m_c, n_c, loss = [], [], 0
-    for c in range(num_classes):
+    m_c: List[int] = []
+    n_c: List[int] = []
+    loss = 0
+    for c_ in range(num_classes):
         m_c.append(
             tf.keras.backend.cast(
-                tf.keras.backend.equal(ind, c), dtype=tf.int32
+                tf.keras.backend.equal(ind, c_), dtype=tf.int32
             )
         )
         n_c.append(
@@ -30,7 +36,7 @@ def balanced_entropy(x, y):
             )
         )
 
-    c = []
+    c: List[int] = []
     for i in range(num_classes):
         c.append(total - n_c[i])
     tc = tf.math.add_n(c)

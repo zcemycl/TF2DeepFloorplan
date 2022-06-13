@@ -3,7 +3,7 @@ import numpy as np
 from scipy import ndimage
 
 
-def fast_hist(im, gt, n=9):
+def fast_hist(im, gt, n: int = 9):
     """
     n is num_of_classes
     """
@@ -13,7 +13,7 @@ def fast_hist(im, gt, n=9):
     ).reshape(n, n)
 
 
-def flood_fill(test_array, h_max=255):
+def flood_fill(test_array: np.ndarray, h_max: int = 255) -> np.ndarray:
     """
     fill in the hole
     """
