@@ -20,3 +20,4 @@ flake8
 pytest
 black
 isort
+pytest-cov

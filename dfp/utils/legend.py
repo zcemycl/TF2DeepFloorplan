@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from rgb_ind_convertor import floorplan_fuse_map
+
+from .rgb_ind_convertor import floorplan_fuse_map
 
 
 def export_legend(legend, filename="legend.png", expand=[-5, -5, 5, 5]):
