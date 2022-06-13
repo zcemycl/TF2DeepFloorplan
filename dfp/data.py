@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 
-def convert_one_hot_to_image(one_hot, dtype="float", act=None):
+def convert_one_hot_to_image(
+    one_hot: tf.Tensor, dtype: str = "float", act: str = None
+) -> tf.Tensor:
     if act == "softmax":
         one_hot = tf.keras.activations.softmax(one_hot)
     [n, h, w, c] = one_hot.shape.as_list()
