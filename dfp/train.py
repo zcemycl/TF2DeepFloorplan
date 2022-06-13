@@ -19,7 +19,7 @@ from net import deepfloorplanModel
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 
-def init(config):
+def init(config: argparse.Namespace):
     dataset = loadDataset()
     model = deepfloorplanModel()
     if config.weight:

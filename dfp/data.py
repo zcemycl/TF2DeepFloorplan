@@ -1,4 +1,4 @@
-# import pdb
+from typing import Dict, Tuple
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -18,7 +18,7 @@ def convert_one_hot_to_image(
     return im
 
 
-def _parse_function(example_proto):
+def _parse_function(example_proto: str) -> Dict[str, str]:
     feature = {
         "image": tf.io.FixedLenFeature([], tf.string),
         "boundary": tf.io.FixedLenFeature([], tf.string),
@@ -28,14 +28,16 @@ def _parse_function(example_proto):
     return tf.io.parse_single_example(example_proto, feature)
 
 
-def decodeAllRaw(x):
+def decodeAllRaw(x: Dict[str, str]) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
     image = tf.io.decode_raw(x["image"], tf.uint8)
     boundary = tf.io.decode_raw(x["boundary"], tf.uint8)
     room = tf.io.decode_raw(x["room"], tf.uint8)
     return image, boundary, room
 
 
-def preprocess(img, bound, room, size=512):
+def preprocess(
+    img: tf.Tensor, bound: tf.Tensor, room: tf.Tensor, size: int = 512
+) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     img = tf.cast(img, dtype=tf.float32)
     img = tf.reshape(img, [-1, size, size, 3]) / 255
     bound = tf.reshape(bound, [-1, size, size])
@@ -45,7 +47,7 @@ def preprocess(img, bound, room, size=512):
     return img, bound, room, hot_b, hot_r
 
 
-def loadDataset(size=512):
+def loadDataset(size: int = 512) -> tf.data.Dataset:
     raw_dataset = tf.data.TFRecordDataset("r3d.tfrecords")
     parsed_dataset = raw_dataset.map(_parse_function)
     return parsed_dataset
