@@ -11,3 +11,7 @@ exclude = '''
   | \.eggs
 )/
 '''
+
+[tool.isort]
+profile = "black"
+src_paths = ["isort", "test"]

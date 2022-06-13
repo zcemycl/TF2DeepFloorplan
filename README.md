@@ -87,6 +87,21 @@ curl --request POST -F "file=@resources/30939153.jpg;type=image/jpeg" \
 3. Go to Runtime Tab, click on Restart runtime. This ensures the packages installed are enabled.
 4. Run the rest of the notebook.
 
+## Deep Floorplan package
+1. Install as a package.  
+```
+pip install -e .
+python setup.py test
+coverage run ./setup.py test
+```
+2. Import as a package. 
+```
+import dfp
+from dfp import net, data
+model = net.deepfloorplanModel()
+```
+3. Uninstall package. `pip uninstall Deep_floorplan`
+
 ## Results
 - From `train.py` and `tensorboard`.
 
