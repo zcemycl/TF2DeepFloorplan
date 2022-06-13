@@ -36,7 +36,7 @@ jobs:
 
       - name: Sort Import
         run: |
-          isort .
+          isort --profile black .
 
       - name: Reformat scripts via Black
         run: |
