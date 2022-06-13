@@ -1,10 +1,17 @@
+from typing import List
+
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .rgb_ind_convertor import floorplan_fuse_map
 
 
-def export_legend(legend, filename="legend.png", expand=[-5, -5, 5, 5]):
+def export_legend(
+    legend: matplotlib.legend.Legend,
+    filename: str = "legend.png",
+    expand: List[int] = [-5, -5, 5, 5],
+):
     fig = legend.figure
     fig.canvas.draw()
     bbox = legend.get_window_extent()
@@ -13,11 +20,11 @@ def export_legend(legend, filename="legend.png", expand=[-5, -5, 5, 5]):
     fig.savefig(filename, dpi="figure", bbox_inches=bbox)
 
 
-def norm255to1(x):
+def norm255to1(x: List[int]) -> List[float]:
     return [p / 255 for p in x]
 
 
-def f(m, c):
+def f(m: str, c: List[float]):
     plt.plot([], [], marker=m, color=c, ls="none")[0]
 
 
