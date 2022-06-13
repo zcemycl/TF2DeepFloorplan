@@ -23,7 +23,7 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 def init(
     config: argparse.Namespace,
-) -> Tuple[tf.data.Dataset, tf.keras.Model, tf.keras.optimizers]:
+) -> Tuple[tf.data.Dataset, tf.keras.Model, tf.keras.optimizers.Optimizer]:
     dataset = loadDataset()
     model = deepfloorplanModel()
     if config.weight:
@@ -68,12 +68,12 @@ def image_grid(
     plt.yticks([])
     plt.grid(False)
     plt.subplot(2, 3, 5)
-    plt.imshow(convert_one_hot_to_image(logcw)[0].numpy())
+    plt.imshow(convert_one_hot_to_image(logcw)[0].numpy().squeeze())
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
     plt.subplot(2, 3, 6)
-    plt.imshow(convert_one_hot_to_image(logr)[0].numpy())
+    plt.imshow(convert_one_hot_to_image(logr)[0].numpy().squeeze())
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
