@@ -178,7 +178,7 @@ class deepfloorplanModel(Model):
         diag: bool = False,
         flip: bool = False,
     ) -> np.ndarray:
-        k = 0
+        k = np.array([]).astype(int)
         if not diag:
             k = val * np.ones(shape)
         else:
