@@ -39,6 +39,7 @@ jobs:
       - name: Precommit check
         run: |
           pre-commit install
+          pre-commit run
           pre-commit run --all-files
 
       - name: Sort Import
