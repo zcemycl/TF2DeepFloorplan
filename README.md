@@ -109,6 +109,7 @@ model = net.deepfloorplanModel()
 pip install -r requirements.txt
 pip install pre-commit
 pre-commit install
+pre-commit run
 pre-commit run --all-files
 # pre-commit uninstall/ pip uninstall pre-commit
 ```
@@ -117,7 +118,8 @@ pre-commit run --all-files
 git fetch origin
 git checkout xx-features
 ```
-4. After push, merge, pull request, the issue is solved and the branch is deleted. You can,
+4. Stage your files, Commit and Push to branch.
+5. After pull and merge requests, the issue is solved and the branch is deleted. You can,
 ```
 git checkout main
 git pull
