@@ -6,6 +6,7 @@ from typing import Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
+
 from data import (
     convert_one_hot_to_image,
     decodeAllRaw,

@@ -6,8 +6,9 @@ from argparse import Namespace
 import matplotlib.image as mpimg
 import numpy as np
 import requests
-from deploy import main
 from flask import Flask, request, send_file
+
+from deploy import main
 
 app = Flask(__name__)
 

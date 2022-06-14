@@ -10,6 +10,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+
 from data import convert_one_hot_to_image
 from net import deepfloorplanModel
 from utils.rgb_ind_convertor import (
