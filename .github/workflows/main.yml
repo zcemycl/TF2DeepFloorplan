@@ -36,11 +36,6 @@ jobs:
           pip install matplotlib numpy opencv-python pdbpp tensorboard tensorflow-cpu scipy Pillow gdown isort black flake8
           pip install mypy types-requests pytype pytest pytest-cov pre-commit
 
-      - name: Precommit check
-        run: |
-          pre-commit install
-          pre-commit run --all-files
-
       - name: Sort Import
         run: |
           isort --profile black .

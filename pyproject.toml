@@ -2,8 +2,7 @@
 line-length = 79
 include = '''
 /(
-    ^setup\.py
-  | dfp
+    dfp
   | tests
 )/
 '''
