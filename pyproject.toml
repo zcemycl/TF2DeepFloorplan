@@ -25,5 +25,3 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
-src_paths = ["dfp", "tests"]
-skip=[".tox",".nox","venv","build","dist","resources","model","log"]

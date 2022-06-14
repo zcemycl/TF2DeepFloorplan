@@ -34,6 +34,7 @@ repos:
     hooks:
       - id: isort
         entry: isort .
+        language: python
         always_run: true
         verbose: true
 
@@ -42,17 +43,18 @@ repos:
     hooks:
       - id: mypy
         entry: mypy .
+        language: python
         always_run: true
         args: [--show-error-codes]
         additional_dependencies: ['types-requests']
         verbose: true
 
-  - repo: local
-    hooks:
-      - id: pytest-check
-        name: pytest-check
-        entry: pytest
-        language: system
-        pass_filenames: false
-        always_run: true
-        verbose: true
+  # - repo: local
+  #   hooks:
+  #     - id: pytest-check
+  #       name: pytest-check
+  #       entry: pytest
+  #       language: python
+  #       pass_filenames: false
+  #       always_run: true
+        # verbose: true
