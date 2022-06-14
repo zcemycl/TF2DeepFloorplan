@@ -24,3 +24,8 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+src_paths = [".","dfp", "tests"]
+skip=[".tox",".nox","venv","build","dist","resources","model","log"]
+skip_glob=["venv/*","build/*","dist/*","resources/*"]
+sections="FUTURE,STDLIB,SETUPTOOLS,TEST,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+known_first_party = "dfp"
