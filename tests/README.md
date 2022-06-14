@@ -3,6 +3,7 @@
 - isort (pyproject.toml, isort.cfg)
 - flake8
 - pytest (setup.cfg)
+- pytest-cov (setup.cfg)
 - mypy (mypy.ini)
 - Other Configuration files: tox.ini, .editorconfig
 
@@ -13,3 +14,4 @@
 4. https://towardsdatascience.com/pre-commit-hooks-you-must-know-ff247f5feb7e
 5. https://mypy.readthedocs.io/en/stable/running_mypy.html
 6. https://mypy.readthedocs.io/en/stable/config_file.html#config-file
+7. https://pre-commit.com/
