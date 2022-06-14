@@ -42,7 +42,7 @@ repos:
     rev: 'v0.961'
     hooks:
       - id: mypy
-        entry: mypy .
+        entry: python -m mypy .
         language: python
         always_run: true
         args: [--show-error-codes]
