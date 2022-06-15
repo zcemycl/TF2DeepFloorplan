@@ -179,7 +179,7 @@ if __name__ == "__main__":
         "--loadmethod",
         type=str,
         default="log",
-        choices=["log", "tflite", "pb"],
+        choices=["log", "tflite", "pb", "none"],
     )  # log,tflite,pb
     p.add_argument("--save", type=str)
     args = p.parse_args()
