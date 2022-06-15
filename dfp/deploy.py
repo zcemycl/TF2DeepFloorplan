@@ -11,14 +11,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-from data import convert_one_hot_to_image
-from net import deepfloorplanModel
 from utils.rgb_ind_convertor import (
     floorplan_boundary_map,
     floorplan_fuse_map,
     ind2rgb,
 )
 from utils.util import fill_break_line, flood_fill, refine_room_region
+
+from .data import convert_one_hot_to_image
+from .net import deepfloorplanModel
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
