@@ -4,9 +4,8 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing import image
 
 # import pdb
 
@@ -244,16 +243,3 @@ class deepfloorplanModel(Model):
             self.rtpfinal(x), 2, 2, "channels_last"
         )
         return logits_r, logits_cw
-
-
-if __name__ == "__main__":
-    path = "/home/yui/Pictures/house/kitchen1.jpg"
-    img = image.load_img(path, target_size=(512, 512, 3))
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
-
-    with tf.device("/cpu:0"):
-        model = deepfloorplanModel()
-        logits_r, logits_cw = model(x)
-    # pdb.set_trace()

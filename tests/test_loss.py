@@ -18,4 +18,8 @@ class TestLossCase(unittest.TestCase):
             self.__class__.randx, self.__class__.randy
         )
         w = w1 + w2
-        self.assertLessEqual(w.numpy(), 1.0)
+        self.assertLessEqual(w.numpy(), 2.0)
+
+
+if __name__ == "__main__":
+    unittest.main()
