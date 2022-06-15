@@ -28,8 +28,8 @@ sys.path.append("./utils/")
 def init(
     config: argparse.Namespace,
 ) -> Tuple[tf.keras.Model, tf.Tensor, np.ndarray]:
+    model = deepfloorplanModel()
     if config.loadmethod == "log":
-        model = deepfloorplanModel()
         model.load_weights(config.weight)
     elif config.loadmethod == "pb":
         model = tf.keras.models.load_model(config.weight)
