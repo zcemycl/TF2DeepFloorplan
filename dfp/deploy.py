@@ -1,9 +1,9 @@
 import argparse
 import gc
 import os
+import sys
 
 # import pdb
-import sys
 from typing import Tuple
 
 import matplotlib.image as mpimg
@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
+import dfp._paths
 from dfp.data import convert_one_hot_to_image
 from dfp.net import deepfloorplanModel
 from dfp.utils.rgb_ind_convertor import (
@@ -21,8 +22,7 @@ from dfp.utils.rgb_ind_convertor import (
 from dfp.utils.util import fill_break_line, flood_fill, refine_room_region
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-
-sys.path.append("./utils/")
+print(dfp._paths)
 
 
 def init(
@@ -166,10 +166,13 @@ def main(config: argparse.Namespace) -> np.ndarray:
     result = newr_color + newcw_color
     print(shp, result.shape)
 
+    if config.save:
+        mpimg.imsave(config.save, result.astype(np.uint8))
+
     return result
 
 
-if __name__ == "__main__":
+def parse_args(args):
     p = argparse.ArgumentParser()
     p.add_argument("--image", type=str, default="resources/30939153.jpg")
     p.add_argument("--weight", type=str, default="log/store/G")
@@ -182,14 +185,14 @@ if __name__ == "__main__":
         choices=["log", "tflite", "pb", "none"],
     )  # log,tflite,pb
     p.add_argument("--save", type=str)
-    args = p.parse_args()
+    return p.parse_args(args)
+
+
+if __name__ == "__main__":
+    args = parse_args(sys.argv[1:])
     print("------------", args)
     result = main(args)
     print(result.shape)
-
-    if args.save:
-        mpimg.imsave(args.save, result.astype(np.uint8))
-
     plt.imshow(result)
     plt.xticks([])
     plt.yticks([])

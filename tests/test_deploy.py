@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from dfp.deploy import colorize, post_process
+from dfp.deploy import colorize, parse_args, post_process
 
 
 @pytest.mark.parametrize(
@@ -24,3 +24,9 @@ def test_post_process(h, w, c):
     inp = np.ones((h, w, 1))
     r, cw = post_process(inp, inp, [h, w, c])
     assert r.shape == (h, w, 1) and cw.shape == (h, w)
+
+
+def test_parse_args():
+    args = parse_args(["--postprocess", "--loadmethod", "tflite"])
+    assert args.postprocess is True
+    assert args.loadmethod == "tflite"

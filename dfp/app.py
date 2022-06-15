@@ -8,8 +8,10 @@ import numpy as np
 import requests
 from flask import Flask, request, send_file
 
-from deploy import main
+import dfp._paths
+from dfp.deploy import main
 
+print(dfp._paths)
 app = Flask(__name__)
 
 
