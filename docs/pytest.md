@@ -4,10 +4,11 @@
 - pytest-mock
 
 ## Keywords
-- Fixture
-- Unit Test
-- Mock Test
-- Parametrizing
+- Fixture (share data across test cases)
+- Unit Test (test for indepedent component)
+- Mock Test (test for depedent component)
+- Parametrizing (various test cases for same component)
+- Integration Test (end-to-end)
 
 
 ### References
