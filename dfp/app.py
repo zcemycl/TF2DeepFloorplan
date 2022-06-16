@@ -46,8 +46,7 @@ def process_image():
             finname = fnum + ".jpg"
             print("files: ", request.files)
             print(request.files["file"])
-        except KeyError:
-            print("KeyError!")
+        except Exception:
             return {"message": "input error"}, 400
 
     if request.json and "uri" in request.json.keys():
@@ -57,23 +56,18 @@ def process_image():
             data = requests.get(uri).content
             saveStreamURI(data, fnum)
             finname = fnum + ".jpg"
-        except KeyError:
-            print("KeyError!")
+        except Exception:
             return {"message": "input error"}, 400
 
     # postprocess
     if "postprocess" in request.form.keys():
-        print("Detect postprocess mode 1...")
-        print(request.form.getlist("postprocess")[0])
         postprocess = bool(int(request.form.getlist("postprocess")[0]))
 
     if request.json and "postprocess" in request.json.keys():
-        print("Detect postprocess mode 2...")
         postprocess = bool(request.json["postprocess"])
 
     # colorize
     if "colorize" in request.form.keys():
-        print(request.form.getlist("colorize")[0])
         colorize = bool(int(request.form.getlist("colorize")[0]))
 
     if request.json and "colorize" in request.json.keys():
@@ -81,7 +75,6 @@ def process_image():
 
     # output path
     if "output" in request.form.keys():
-        print(request.form.getlist("output")[0])
         output = str(request.form.getlist("output")[0]).strip()
 
     if request.json and "output" in request.json.keys():
@@ -110,8 +103,8 @@ def process_image():
             os.path.join(output, foutname), mimetype="image/jpg"
         )
         return callback, 200
-    except FileNotFoundError:
-        return {"message": "input error"}, 400
+    except Exception:
+        return {"message": "send error"}, 400
     finally:
         os.system("rm " + os.path.join(output, foutname))
         if finname != "resources/30939153.jpg":

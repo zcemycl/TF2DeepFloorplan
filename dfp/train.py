@@ -84,6 +84,21 @@ def image_grid(
     return figure
 
 
+@tf.function
+def train_step(model, optim, img, hr, hb):
+    # forward
+    with tf.GradientTape() as tape:
+        logits_r, logits_cw = model(img, training=True)
+        loss1 = balanced_entropy(logits_r, hr)
+        loss2 = balanced_entropy(logits_cw, hb)
+        w1, w2 = cross_two_tasks_weight(hr, hb)
+        loss = w1 * loss1 + w2 * loss2
+    # backward
+    grads = tape.gradient(loss, model.trainable_weights)
+    optim.apply_gradients(zip(grads, model.trainable_weights))
+    return logits_r, logits_cw, loss, loss1, loss2
+
+
 def main(config: argparse.Namespace):
     # initialization
     writer = tf.summary.create_file_writer(config.logdir)
@@ -93,18 +108,11 @@ def main(config: argparse.Namespace):
     for epoch in range(config.epochs):
         print("[INFO] Epoch {}".format(epoch))
         for data in list(dataset.shuffle(400).batch(config.batchsize)):
-            # forward
             img, bound, room = decodeAllRaw(data)
             img, bound, room, hb, hr = preprocess(img, bound, room)
-            with tf.GradientTape() as tape:
-                logits_r, logits_cw = model(img, training=True)
-                loss1 = balanced_entropy(logits_r, hr)
-                loss2 = balanced_entropy(logits_cw, hb)
-                w1, w2 = cross_two_tasks_weight(hr, hb)
-                loss = w1 * loss1 + w2 * loss2
-            # backward
-            grads = tape.gradient(loss, model.trainable_weights)
-            optim.apply_gradients(zip(grads, model.trainable_weights))
+            logits_r, logits_cw, loss, loss1, loss2 = train_step(
+                model, optim, img, hr, hb
+            )
 
             # plot progress
             if pltiter % config.saveTensorInterval == 0:
@@ -143,4 +151,5 @@ def parse_args(args):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    print(args)
     main(args)
