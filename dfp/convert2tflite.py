@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 import tensorflow as tf
 
@@ -14,10 +15,14 @@ def converter(config: argparse.Namespace):
         f.write(tflite_model)
 
 
-if __name__ == "__main__":
+def parse_args(args):
     p = argparse.ArgumentParser()
     p.add_argument("--modeldir", type=str, default="model/store")
     p.add_argument("--tflitedir", type=str, default="model/store/model.tflite")
     p.add_argument("--quantize", action="store_true")
-    args = p.parse_args()
+    return p.parse_args(args)
+
+
+if __name__ == "__main__":
+    args = parse_args(sys.argv[1:])
     converter(args)
