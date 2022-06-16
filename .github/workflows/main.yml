@@ -63,11 +63,7 @@ jobs:
       # Test python scripts
       - name: Test with pytest
         run: |
-          python -m unittest discover
-
-      - name: Install deep floorplan package
-        run: |
-          pip install -e .
+          python -m pytest --cov=./dfp --cov-report xml
 
       # Coveralls
       - name: Coveralls
@@ -75,3 +71,7 @@ jobs:
         with:
           github-token: ${{ secrets.COVERALLS_GITHUB_TOKEN }}
           path-to-cov: coverage.xml
+
+      - name: Install deep floorplan package
+        run: |
+          pip install -e .
