@@ -1,7 +1,13 @@
 import numpy as np
 import tensorflow as tf
 
-from dfp.data import _parse_function, decodeAllRaw, plotData, preprocess
+from dfp.data import (
+    _parse_function,
+    convert_one_hot_to_image,
+    decodeAllRaw,
+    plotData,
+    preprocess,
+)
 
 
 def _bytes_feature(value):
@@ -14,6 +20,12 @@ def _bytes_feature(value):
 
 
 class TestDataCase:
+    def test_convert_one_hot2img(self):
+        hot = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
+        hot = hot / tf.reduce_sum(hot, axis=-1, keepdims=True)
+        res = convert_one_hot_to_image(hot, dtype="int", act="softmax")
+        assert res.numpy().shape == (1, 16, 16, 1)
+
     def test_preprocess(self):
         img = tf.random.normal((26, 26, 3))
         b = tf.random.uniform(

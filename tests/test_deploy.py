@@ -52,6 +52,12 @@ class fakeModel:
             b = tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1)
             return b / tf.reduce_sum(b, axis=-1, keepdims=True)
 
+    def load_weights(self, x):
+        pass
+
+    def allocate_tensors(self):
+        pass
+
 
 @pytest.fixture
 def model_img():
@@ -87,11 +93,42 @@ def test_parse_args():
     assert args.loadmethod == "tflite"
 
 
-def test_init(mocker):
+def test_init_none(mocker):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
     args = Namespace(loadmethod="none", image="")
+    model_, img, shp = init(args)
+    assert shp == (16, 16, 3)
+
+
+def test_init_log(mocker):
+    model = fakeModel()
+    mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
+    mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
+    args = Namespace(loadmethod="log", image="", weight="log/store/G")
+    model_, img, shp = init(args)
+    assert shp == (16, 16, 3)
+
+
+def test_init_pb(mocker):
+    model = fakeModel()
+    mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
+    mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
+    mocker.patch("dfp.deploy.tf.keras.models.load_model", return_value=model)
+    args = Namespace(loadmethod="pb", image="", weight="model/store")
+    model_, img, shp = init(args)
+    assert shp == (16, 16, 3)
+
+
+def test_init_tflite(mocker):
+    model = fakeModel()
+    mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
+    mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
+    mocker.patch("dfp.deploy.tf.lite.Interpreter", return_value=model)
+    args = Namespace(
+        loadmethod="tflite", image="", weight="model/store/model.tflite"
+    )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
 
@@ -111,7 +148,7 @@ def test_main(colorize, postprocess, expected, model_img, mocker):
         image="",
         colorize=colorize,
         postprocess=postprocess,
-        save=False,
+        save=True,
     )
     model, img = model_img
 
@@ -133,6 +170,27 @@ def test_main_tflite(model_img, mocker):
     )
     model, img = model_img
     mocker.patch("dfp.deploy.init", return_value=(model, img, [16, 16, 3]))
+    res = main(args)
+    assert res.shape == (16, 16, 3)
+
+
+def test_main_log(model_img, mocker):
+    args = Namespace(
+        loadmethod="log",
+        image="",
+        colorize=True,
+        postprocess=True,
+        save=False,
+    )
+    model, img = model_img
+    mocker.patch("dfp.deploy.init", return_value=(model, img, [16, 16, 3]))
+    mocker.patch(
+        "dfp.deploy.predict",
+        return_value=(
+            tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1),
+            tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1),
+        ),
+    )
     res = main(args)
     assert res.shape == (16, 16, 3)
 
