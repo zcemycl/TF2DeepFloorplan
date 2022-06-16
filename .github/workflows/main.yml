@@ -63,7 +63,9 @@ jobs:
       # Test python scripts
       - name: Test with pytest
         run: |
+          pip install python-coveralls
           python -m pytest --cov=./dfp --cov-report xml
+          coveralls
 
       # Coveralls
       - name: Coveralls
