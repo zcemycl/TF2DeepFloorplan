@@ -69,8 +69,6 @@ def main(dataset):
         for data in list(dataset.shuffle(400).batch(1)):
             plotData(data)
             plt.show()
-
-            # pdb.set_trace()
             break
 
 
