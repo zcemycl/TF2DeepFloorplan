@@ -71,7 +71,7 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.COVERALLS_GITHUB_TOKEN }}
-          path-to-cov: coverage.xml
+          path-to-lcov: coverage.xml
 
       - name: Install deep floorplan package
         run: |
