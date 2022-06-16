@@ -8,9 +8,25 @@ import numpy as np
 import requests
 from flask import Flask, request, send_file
 
-from deploy import main
+import dfp._paths
+from dfp.deploy import main
 
+print(dfp._paths)
 app = Flask(__name__)
+
+
+def saveStreamFile(stream, fnum):
+    stream.save(fnum + ".jpg")
+
+
+def saveStreamURI(stream, fnum):
+    with open(fnum + ".jpg", "wb") as handler:
+        handler.write(stream)
+
+
+@app.route("/")
+def home():
+    return {"message": "Hello Flask!"}
 
 
 @app.route("/process", methods=["POST"])
@@ -26,23 +42,24 @@ def process_image():
     if "file" in request.files:
         print("File mode...")
         try:
-            request.files["file"].save(fnum + ".jpg")
+            saveStreamFile(request.files["file"], fnum)
             finname = fnum + ".jpg"
             print("files: ", request.files)
             print(request.files["file"])
         except KeyError:
             print("KeyError!")
+            return {"message": "input error"}, 400
 
     if request.json and "uri" in request.json.keys():
         print("URI mode...")
         uri = request.json["uri"]
         try:
             data = requests.get(uri).content
-            with open(fnum + ".jpg", "wb") as handler:
-                handler.write(data)
+            saveStreamURI(data, fnum)
             finname = fnum + ".jpg"
         except KeyError:
             print("KeyError!")
+            return {"message": "input error"}, 400
 
     # postprocess
     if "postprocess" in request.form.keys():

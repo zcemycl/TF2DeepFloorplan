@@ -1,25 +1,28 @@
 import argparse
 import io
 import os
+import sys
 from typing import Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-from data import (
+import dfp._paths
+from dfp.data import (
     convert_one_hot_to_image,
     decodeAllRaw,
     loadDataset,
     preprocess,
 )
-from loss import balanced_entropy, cross_two_tasks_weight
-from net import deepfloorplanModel
+from dfp.loss import balanced_entropy, cross_two_tasks_weight
+from dfp.net import deepfloorplanModel
 
 # import pdb
 
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+print(dfp._paths)
 
 
 def init(
@@ -124,7 +127,7 @@ def main(config: argparse.Namespace):
     # pdb.set_trace()
 
 
-if __name__ == "__main__":
+def parse_args(args):
     p = argparse.ArgumentParser()
     p.add_argument("--batchsize", type=int, default=2)
     p.add_argument("--lr", type=float, default=1e-4)
@@ -135,5 +138,9 @@ if __name__ == "__main__":
     p.add_argument("--weight", type=str)
     p.add_argument("--saveTensorInterval", type=int, default=10)
     p.add_argument("--saveModelInterval", type=int, default=20)
-    args = p.parse_args()
+    return p.parse_args(args)
+
+
+if __name__ == "__main__":
+    args = parse_args(sys.argv[1:])
     main(args)

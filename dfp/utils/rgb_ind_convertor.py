@@ -79,5 +79,4 @@ def ind2rgb(
 
     for i, rgb in color_map.items():
         rgb_im[(ind_im == i)] = rgb
-
     return rgb_im.astype(int)

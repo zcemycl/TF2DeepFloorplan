@@ -4,7 +4,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .rgb_ind_convertor import floorplan_fuse_map
+import dfp.utils._paths
+from dfp.utils.rgb_ind_convertor import floorplan_fuse_map
+
+print(dfp.utils._paths)
 
 
 def export_legend(
@@ -24,11 +27,11 @@ def norm255to1(x: List[int]) -> List[float]:
     return [p / 255 for p in x]
 
 
-def f(m: str, c: List[float]):
-    plt.plot([], [], marker=m, color=c, ls="none")[0]
+def handle(m: str, c: List[float]):
+    return plt.plot([], [], marker=m, color=c, ls="none")[0]
 
 
-if __name__ == "__main__":
+def main():
     colors = [
         "background",
         "closet",
@@ -43,7 +46,11 @@ if __name__ == "__main__":
         "wall",
     ]
     colors2 = [norm255to1(rgb) for rgb in list(floorplan_fuse_map.values())]
-    handles = [f("s", colors2[i]) for i in range(len(colors))]
+    handles = [handle("s", colors2[i]) for i in range(len(colors))]
     labels = colors
     legend = plt.legend(handles, labels, loc=3, framealpha=1, frameon=True)
     export_legend(legend)
+
+
+if __name__ == "__main__":
+    main()
