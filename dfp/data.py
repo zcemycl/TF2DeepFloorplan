@@ -53,19 +53,27 @@ def loadDataset(size: int = 512) -> tf.data.Dataset:
     return parsed_dataset
 
 
-if __name__ == "__main__":
-    dataset = loadDataset()
+def plotData(data):
+    img, bound, room = decodeAllRaw(data)
+    img, bound, room, hb, hr = preprocess(img, bound, room)
+    plt.subplot(1, 3, 1)
+    plt.imshow(img[0].numpy())
+    plt.subplot(1, 3, 2)
+    plt.imshow(bound[0].numpy())
+    plt.subplot(1, 3, 3)
+    plt.imshow(convert_one_hot_to_image(hb)[0].numpy())
+
+
+def main(dataset):
     for ite in range(2):
         for data in list(dataset.shuffle(400).batch(1)):
-            img, bound, room = decodeAllRaw(data)
-            img, bound, room, hb, hr = preprocess(img, bound, room)
-            plt.subplot(1, 3, 1)
-            plt.imshow(img[0].numpy())
-            plt.subplot(1, 3, 2)
-            plt.imshow(bound[0].numpy())
-            plt.subplot(1, 3, 3)
-            plt.imshow(convert_one_hot_to_image(hb)[0].numpy())
+            plotData(data)
             plt.show()
 
             # pdb.set_trace()
             break
+
+
+if __name__ == "__main__":
+    dataset = loadDataset()
+    main(dataset)
