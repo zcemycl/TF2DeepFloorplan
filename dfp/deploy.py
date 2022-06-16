@@ -131,7 +131,7 @@ def main(config: argparse.Namespace) -> np.ndarray:
     model, img, shp = init(config)
     if config.loadmethod == "log":
         logits_cw, logits_r = predict(model, img, shp)
-    elif config.loadmethod == "pb":
+    elif config.loadmethod == "pb" or config.loadmethod == "none":
         logits_r, logits_cw = model(img)
     elif config.loadmethod == "tflite":
         input_details = model.get_input_details()
@@ -188,14 +188,18 @@ def parse_args(args):
     return p.parse_args(args)
 
 
-if __name__ == "__main__":
-    args = parse_args(sys.argv[1:])
-    print("------------", args)
-    result = main(args)
+def deploy_plot_res(result):
     print(result.shape)
     plt.imshow(result)
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
+
+
+if __name__ == "__main__":
+    args = parse_args(sys.argv[1:])
+    print("------------", args)
+    result = main(args)
+    deploy_plot_res(result)
     plt.show()
     # pdb.set_trace()

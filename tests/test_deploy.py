@@ -1,8 +1,63 @@
+from argparse import Namespace
+
 import pytest
 
 import numpy as np
+import tensorflow as tf
 
-from dfp.deploy import colorize, parse_args, post_process
+from dfp.deploy import (
+    colorize,
+    deploy_plot_res,
+    init,
+    main,
+    parse_args,
+    post_process,
+)
+
+
+class fakeVGG16:
+    def __init__(self):
+        self.trainable = True
+
+
+class fakeModel:
+    def __init__(self):
+        self.trainable = True
+        self.vgg16 = fakeVGG16()
+
+    def predict(self, x):
+        a = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
+        b = tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1)
+        return b / tf.reduce_sum(b, axis=-1, keepdims=True), a / tf.reduce_sum(
+            a, axis=-1, keepdims=True
+        )
+
+    def invoke(self):
+        pass
+
+    def get_input_details(self):
+        return [{"index": (512, 512, 3)}]
+
+    def get_output_details(self):
+        return [{"index": (512, 512, 9)}, {"index": (512, 512, 3)}]
+
+    def set_tensor(self, ind, img):
+        pass
+
+    def get_tensor(self, ind):
+        if ind[2] == 3:
+            a = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
+            return a / tf.reduce_sum(a, axis=-1, keepdims=True)
+        elif ind[2] == 9:
+            b = tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1)
+            return b / tf.reduce_sum(b, axis=-1, keepdims=True)
+
+
+@pytest.fixture
+def model_img():
+    model = fakeModel()
+    img = tf.random.normal((1, 16, 16, 3))
+    return model, img
 
 
 @pytest.mark.parametrize(
@@ -30,3 +85,58 @@ def test_parse_args():
     args = parse_args(["--postprocess", "--loadmethod", "tflite"])
     assert args.postprocess is True
     assert args.loadmethod == "tflite"
+
+
+def test_init(mocker):
+    model = fakeModel()
+    mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
+    mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
+    args = Namespace(loadmethod="none", image="")
+    model_, img, shp = init(args)
+    assert shp == (16, 16, 3)
+
+
+@pytest.mark.parametrize(
+    "colorize,postprocess,expected",
+    [
+        (True, True, (16, 16, 3)),
+        (False, False, (16, 16)),
+        (True, False, (16, 16, 3)),
+        (False, True, (16, 16)),
+    ],
+)
+def test_main(colorize, postprocess, expected, model_img, mocker):
+    args = Namespace(
+        loadmethod="none",
+        image="",
+        colorize=colorize,
+        postprocess=postprocess,
+        save=False,
+    )
+    model, img = model_img
+
+    mocker.patch(
+        "dfp.deploy.init", return_value=(model.predict, img, [16, 16, 3])
+    )
+    mocker.patch("dfp.deploy.mpimg.imsave", return_value=None)
+    res = main(args)
+    assert res.shape == expected
+
+
+def test_main_tflite(model_img, mocker):
+    args = Namespace(
+        loadmethod="tflite",
+        image="",
+        colorize=True,
+        postprocess=True,
+        save=False,
+    )
+    model, img = model_img
+    mocker.patch("dfp.deploy.init", return_value=(model, img, [16, 16, 3]))
+    res = main(args)
+    assert res.shape == (16, 16, 3)
+
+
+def test_deploy_plot_res():
+    a = np.zeros((16, 16, 3))
+    deploy_plot_res(a)
