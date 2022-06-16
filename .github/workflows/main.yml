@@ -36,29 +36,29 @@ jobs:
           pip install matplotlib numpy opencv-python pdbpp tensorboard tensorflow-cpu scipy Pillow gdown isort black flake8
           pip install mypy types-requests pytype pytest pytest-cov pre-commit pytest-mock pytest-flask
 
-      - name: Precommit check
-        run: |
-          pre-commit install
-          pre-commit run
-          pre-commit run --all-files
+#       - name: Precommit check
+#         run: |
+#           pre-commit install
+#           pre-commit run
+#           pre-commit run --all-files
 
-      - name: Sort Import
-        run: |
-          isort --profile black .
+#       - name: Sort Import
+#         run: |
+#           isort --profile black .
 
-      - name: Reformat scripts via Black
-        run: |
-          black dfp/*.py
-          black dfp/utils/*.py
-          black tests/*.py
+#       - name: Reformat scripts via Black
+#         run: |
+#           black dfp/*.py
+#           black dfp/utils/*.py
+#           black tests/*.py
 
-      - name: Check standard coding style (PEP8)
-        run: |
-          flake8 .
+#       - name: Check standard coding style (PEP8)
+#         run: |
+#           flake8 .
 
-      - name: Type checking
-        run: |
-          python -m mypy .
+#       - name: Type checking
+#         run: |
+#           python -m mypy .
 
       # Test python scripts
       - name: Test with pytest
@@ -72,7 +72,7 @@ jobs:
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
-          github-token: ${{ secrets.COVERALLS_GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: lcov.info
 
       - name: Install deep floorplan package
