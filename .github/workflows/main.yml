@@ -68,3 +68,10 @@ jobs:
       - name: Install deep floorplan package
         run: |
           pip install -e .
+
+      # Coveralls
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.COVERALLS_GITHUB_TOKEN }}
+          path-to-cov: coverage.xml
