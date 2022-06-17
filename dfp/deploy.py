@@ -198,7 +198,6 @@ def deploy_plot_res(result: np.ndarray):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
-    print("------------", args)
     result = main(args)
     deploy_plot_res(result)
     plt.show()

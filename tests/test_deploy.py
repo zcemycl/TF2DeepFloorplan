@@ -14,18 +14,44 @@ from dfp.deploy import (
     main,
     parse_args,
     post_process,
+    predict,
 )
+
+
+class fakeLayer:
+    def __init__(self):
+        self.name = "pool"
+
+    def __call__(self, x: tf.Tensor) -> tf.Tensor:
+        return x
 
 
 class fakeVGG16:
     def __init__(self):
         self.trainable = True
+        self.layer = fakeLayer()
+        self.layers = [self.layer, self.layer]
 
 
 class fakeModel:
     def __init__(self):
         self.trainable = True
         self.vgg16 = fakeVGG16()
+        self.rtpfinal = fakeLayer()
+        self.rbpups = [self.rbpfinal]
+        self.rbpcv1 = [self.rbpfinal]
+        self.rbpcv2 = [self.rbpfinal]
+        self.rtpups = [self.rtpfinal]
+        self.rtpcv1 = [self.rtpfinal]
+        self.rtpcv2 = [self.rtpfinal]
+
+    def rbpfinal(self, x: tf.Tensor) -> tf.Tensor:
+        return x
+
+    def non_local_context(
+        self, x: tf.Tensor, *args: int, **kwargs: str
+    ) -> tf.Tensor:
+        return x
 
     def predict(self, x: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         a = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
@@ -208,3 +234,11 @@ def test_main_log(model_img: Tuple[fakeModel, tf.Tensor], mocker: MockFixture):
 def test_deploy_plot_res():
     a = np.zeros((16, 16, 3))
     deploy_plot_res(a)
+
+
+def test_predict(model_img: Tuple[fakeModel, tf.Tensor], mocker: MockFixture):
+    model, img = model_img
+    model.rtpfinal = lambda x: x
+    shp = (16, 16, 3)
+    a, b = predict(model, img, shp)
+    assert a.numpy().shape == (1, 32, 32, 3)
