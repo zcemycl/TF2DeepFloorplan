@@ -7,6 +7,8 @@ import matplotlib.image as mpimg
 import numpy as np
 import requests
 from flask import Flask, request, send_file
+from werkzeug.datastructures import FileStorage
+from werkzeug.local import LocalProxy
 
 import dfp._paths
 from dfp.deploy import main
@@ -15,13 +17,46 @@ print(dfp._paths)
 app = Flask(__name__)
 
 
-def saveStreamFile(stream, fnum):
+def saveStreamFile(stream: FileStorage, fnum: str):
     stream.save(fnum + ".jpg")
 
 
-def saveStreamURI(stream, fnum):
+def saveStreamURI(stream: bytes, fnum: str):
     with open(fnum + ".jpg", "wb") as handler:
         handler.write(stream)
+
+
+def parsePostprocess(request: LocalProxy) -> bool:
+    postprocess = True
+    # postprocess
+    if "postprocess" in request.form.keys():
+        postprocess = bool(int(request.form.getlist("postprocess")[0]))
+
+    if request.json and "postprocess" in request.json.keys():
+        postprocess = bool(request.json["postprocess"])
+    return postprocess
+
+
+def parseColorize(request: LocalProxy) -> bool:
+    colorize = True
+    # colorize
+    if "colorize" in request.form.keys():
+        colorize = bool(int(request.form.getlist("colorize")[0]))
+
+    if request.json and "colorize" in request.json.keys():
+        colorize = bool(request.json["colorize"])
+    return colorize
+
+
+def parseOutputDir(request: LocalProxy) -> str:
+    output = "/tmp"
+    # output path
+    if "output" in request.form.keys():
+        output = str(request.form.getlist("output")[0]).strip()
+
+    if request.json and "output" in request.json.keys():
+        output = str(request.json["output"])
+    return output
 
 
 @app.route("/")
@@ -33,8 +68,6 @@ def home():
 def process_image():
     fnum = str(random.randint(0, 10000))
     finname = "resources/30939153.jpg"
-    postprocess = True
-    colorize = True
     foutname = fnum + "-out.jpg"
     output = "/tmp"
 
@@ -59,26 +92,9 @@ def process_image():
         except Exception:
             return {"message": "input error"}, 400
 
-    # postprocess
-    if "postprocess" in request.form.keys():
-        postprocess = bool(int(request.form.getlist("postprocess")[0]))
-
-    if request.json and "postprocess" in request.json.keys():
-        postprocess = bool(request.json["postprocess"])
-
-    # colorize
-    if "colorize" in request.form.keys():
-        colorize = bool(int(request.form.getlist("colorize")[0]))
-
-    if request.json and "colorize" in request.json.keys():
-        colorize = bool(request.json["colorize"])
-
-    # output path
-    if "output" in request.form.keys():
-        output = str(request.form.getlist("output")[0]).strip()
-
-    if request.json and "output" in request.json.keys():
-        output = str(request.json["output"])
+    postprocess = parsePostprocess(request)
+    colorize = parseColorize(request)
+    output = parseOutputDir(request)
 
     args = Namespace(
         image=finname,

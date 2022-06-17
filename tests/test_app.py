@@ -1,7 +1,7 @@
 import os
 from argparse import Namespace
 from types import TracebackType
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 import pytest
 
@@ -10,6 +10,7 @@ from flask.testing import FlaskClient
 from pytest_mock import MockFixture
 
 from dfp.app import app as create_app
+from dfp.app import parseColorize, parseOutputDir, parsePostprocess
 
 
 class fakeMultiprocessing:
@@ -32,6 +33,28 @@ class fakeMultiprocessing:
 
     def __getitem__(self) -> np.ndarray:
         return np.zeros([1, 32, 32, 3])
+
+
+class fakeForm:
+    def __init__(self, data: Dict[str, str]):
+        self.data = data
+
+    def keys(self):
+        return self.data.keys()
+
+    def getlist(self, key: str) -> List[str]:
+        return [self.data[key]]
+
+    def __getitem__(self, key: str) -> str:
+        return self.data[key]
+
+
+class fakeRequest:
+    def __init__(self):
+        self.form = fakeForm(
+            {"postprocess": "0", "colorize": "0", "output": "/tmp"}
+        )
+        self.json = fakeForm({})
 
 
 @pytest.fixture
@@ -96,3 +119,21 @@ def test_app_mock_process_file(client: FlaskClient):
     resp = client.post("/process", data=files)
     os.system("rm *.jpg")
     assert resp.status_code == 400
+
+
+def test_app_parsePostprocess():
+    req = fakeRequest()
+    postprocess = parsePostprocess(req)
+    assert postprocess is False
+
+
+def test_app_parseColorize():
+    req = fakeRequest()
+    colorize = parseColorize(req)
+    assert colorize is False
+
+
+def test_app_parseOutputDir():
+    req = fakeRequest()
+    output = parseOutputDir(req)
+    assert output == "/tmp"
