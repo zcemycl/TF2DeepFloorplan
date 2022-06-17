@@ -111,7 +111,7 @@ def test_colorize(h: int, w: int, c: int, mocker: MockFixture):
 )
 def test_post_process(h: int, w: int, c: int):
     inp = np.ones((h, w, 1))
-    r, cw = post_process(inp, inp, [h, w, c])
+    r, cw = post_process(inp, inp, np.array([h, w, c]))
     assert r.shape == (h, w, 1) and cw.shape == (h, w)
 
 
@@ -238,7 +238,6 @@ def test_deploy_plot_res():
 
 def test_predict(model_img: Tuple[fakeModel, tf.Tensor], mocker: MockFixture):
     model, img = model_img
-    model.rtpfinal = lambda x: x
-    shp = (16, 16, 3)
+    shp = np.array([16, 16, 3])
     a, b = predict(model, img, shp)
     assert a.numpy().shape == (1, 32, 32, 3)

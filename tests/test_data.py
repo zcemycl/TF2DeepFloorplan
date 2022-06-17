@@ -52,7 +52,7 @@ class TestDataCase:
         assert r.shape == (1,)
 
     def test_parse_function(self, mocker: MockFixture):
-        encoded_image_string = np.array([[1, 2], [3, 4]]).tostring()
+        encoded_image_string = np.array([[1, 2], [3, 4]]).tobytes()
         image = tf.compat.as_bytes(encoded_image_string)
         image = _bytes_feature(image)
         feature = {
@@ -80,13 +80,13 @@ class TestDataCase:
         hr = tf.random.uniform(shape=(1, 26, 26, 9), minval=0, maxval=1)
         mocker.patch("dfp.data.decodeAllRaw", return_value=(img, b, r))
         mocker.patch("dfp.data.preprocess", return_value=(img, b, r, hb, hr))
-        eg = tf.convert_to_tensor(np.array([[1, 2], [3, 4]]).tostring())
+        eg = tf.convert_to_tensor(np.array([[1, 2], [3, 4]]).tobytes())
         plotData({"image": eg})
 
     def test_main(self, mocker: MockFixture):
         mocker.patch("dfp.data.plotData", return_value=None)
         mocker.patch("dfp.data.plt.show", return_value=None)
-        arr = np.array([[1, 2], [3, 4]]).tostring()
+        arr = np.array([[1, 2], [3, 4]]).tobytes()
         arr = tf.data.Dataset.from_tensor_slices([arr])
         ds = tf.data.Dataset.zip((arr, arr))
         main(ds)
