@@ -1,4 +1,8 @@
 from argparse import Namespace
+from types import TracebackType
+from typing import Optional, Type
+
+from pytest_mock import MockFixture
 
 from dfp.convert2tflite import converter, parse_args
 
@@ -13,13 +17,18 @@ class fakeConverter:
 
 
 class fakeFile:
-    def write(self, *args, **kwargs):
+    def write(self, *args: str, **kwargs: int):
         pass
 
-    def __enter__(self, *args, **kwargs):
+    def __enter__(self, *args: str, **kwargs: int):
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ):
         pass
 
 
@@ -32,7 +41,7 @@ def test_parse_args():
     assert args.quantize is True
 
 
-def test_converter(mocker):
+def test_converter(mocker: MockFixture):
     model = fakeModel()
     con = fakeConverter()
     f = fakeFile()

@@ -1,9 +1,11 @@
 from argparse import Namespace
+from typing import Dict, List, Tuple
 
 import pytest
 
 import numpy as np
 import tensorflow as tf
+from pytest_mock import MockFixture
 
 from dfp.deploy import (
     colorize,
@@ -25,7 +27,7 @@ class fakeModel:
         self.trainable = True
         self.vgg16 = fakeVGG16()
 
-    def predict(self, x):
+    def predict(self, x: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         a = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
         b = tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1)
         return b / tf.reduce_sum(b, axis=-1, keepdims=True), a / tf.reduce_sum(
@@ -35,16 +37,16 @@ class fakeModel:
     def invoke(self):
         pass
 
-    def get_input_details(self):
+    def get_input_details(self) -> List[Dict[str, Tuple[int, int, int]]]:
         return [{"index": (512, 512, 3)}]
 
-    def get_output_details(self):
+    def get_output_details(self) -> List[Dict[str, Tuple[int, int, int]]]:
         return [{"index": (512, 512, 9)}, {"index": (512, 512, 3)}]
 
-    def set_tensor(self, ind, img):
+    def set_tensor(self, ind: Tuple[int, int, int], img: tf.Tensor):
         pass
 
-    def get_tensor(self, ind):
+    def get_tensor(self, ind: Tuple[int, int, int]):
         if ind[2] == 3:
             a = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
             return a / tf.reduce_sum(a, axis=-1, keepdims=True)
@@ -52,7 +54,7 @@ class fakeModel:
             b = tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1)
             return b / tf.reduce_sum(b, axis=-1, keepdims=True)
 
-    def load_weights(self, x):
+    def load_weights(self, x: str):
         pass
 
     def allocate_tensors(self):
@@ -60,7 +62,7 @@ class fakeModel:
 
 
 @pytest.fixture
-def model_img():
+def model_img() -> Tuple[fakeModel, tf.Tensor]:
     model = fakeModel()
     img = tf.random.normal((1, 16, 16, 3))
     return model, img
@@ -69,7 +71,7 @@ def model_img():
 @pytest.mark.parametrize(
     "h,w,c", [(8, 8, 3), (16, 16, 3), (32, 32, 3), (64, 64, 3)]
 )
-def test_colorize(h, w, c, mocker):
+def test_colorize(h: int, w: int, c: int, mocker: MockFixture):
     inp = np.random.randint(2, size=(h, w))
     out = np.zeros((h, w, c))
     m = mocker.patch("dfp.deploy.ind2rgb")
@@ -81,7 +83,7 @@ def test_colorize(h, w, c, mocker):
 @pytest.mark.parametrize(
     "h,w,c", [(8, 8, 3), (16, 16, 3), (32, 32, 3), (64, 64, 3)]
 )
-def test_post_process(h, w, c):
+def test_post_process(h: int, w: int, c: int):
     inp = np.ones((h, w, 1))
     r, cw = post_process(inp, inp, [h, w, c])
     assert r.shape == (h, w, 1) and cw.shape == (h, w)
@@ -93,7 +95,7 @@ def test_parse_args():
     assert args.loadmethod == "tflite"
 
 
-def test_init_none(mocker):
+def test_init_none(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
@@ -102,7 +104,7 @@ def test_init_none(mocker):
     assert shp == (16, 16, 3)
 
 
-def test_init_log(mocker):
+def test_init_log(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
@@ -111,7 +113,7 @@ def test_init_log(mocker):
     assert shp == (16, 16, 3)
 
 
-def test_init_pb(mocker):
+def test_init_pb(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
@@ -121,7 +123,7 @@ def test_init_pb(mocker):
     assert shp == (16, 16, 3)
 
 
-def test_init_tflite(mocker):
+def test_init_tflite(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
@@ -142,7 +144,13 @@ def test_init_tflite(mocker):
         (False, True, (16, 16)),
     ],
 )
-def test_main(colorize, postprocess, expected, model_img, mocker):
+def test_main(
+    colorize: bool,
+    postprocess: bool,
+    expected: Tuple[int, int, int],
+    model_img: Tuple[fakeModel, tf.Tensor],
+    mocker: MockFixture,
+):
     args = Namespace(
         loadmethod="none",
         image="",
@@ -160,7 +168,9 @@ def test_main(colorize, postprocess, expected, model_img, mocker):
     assert res.shape == expected
 
 
-def test_main_tflite(model_img, mocker):
+def test_main_tflite(
+    model_img: Tuple[fakeModel, tf.Tensor], mocker: MockFixture
+):
     args = Namespace(
         loadmethod="tflite",
         image="",
@@ -174,7 +184,7 @@ def test_main_tflite(model_img, mocker):
     assert res.shape == (16, 16, 3)
 
 
-def test_main_log(model_img, mocker):
+def test_main_log(model_img: Tuple[fakeModel, tf.Tensor], mocker: MockFixture):
     args = Namespace(
         loadmethod="log",
         image="",

@@ -18,7 +18,7 @@ def convert_one_hot_to_image(
     return im
 
 
-def _parse_function(example_proto: str) -> Dict[str, str]:
+def _parse_function(example_proto: bytes) -> Dict[str, tf.Tensor]:
     feature = {
         "image": tf.io.FixedLenFeature([], tf.string),
         "boundary": tf.io.FixedLenFeature([], tf.string),
@@ -28,7 +28,9 @@ def _parse_function(example_proto: str) -> Dict[str, str]:
     return tf.io.parse_single_example(example_proto, feature)
 
 
-def decodeAllRaw(x: Dict[str, str]) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+def decodeAllRaw(
+    x: Dict[str, tf.Tensor]
+) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
     image = tf.io.decode_raw(x["image"], tf.uint8)
     boundary = tf.io.decode_raw(x["boundary"], tf.uint8)
     room = tf.io.decode_raw(x["room"], tf.uint8)
@@ -53,7 +55,7 @@ def loadDataset(size: int = 512) -> tf.data.Dataset:
     return parsed_dataset
 
 
-def plotData(data: Dict[str, str]):
+def plotData(data: Dict[str, tf.Tensor]):
     img, bound, room = decodeAllRaw(data)
     img, bound, room, hb, hr = preprocess(img, bound, room)
     plt.subplot(1, 3, 1)

@@ -1,8 +1,11 @@
 from argparse import Namespace
+from types import TracebackType
+from typing import Any, List, Optional, Tuple, Type
 
 import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from pytest_mock import MockFixture
 
 from dfp.train import image_grid, init, parse_args, plot_to_image, train_step
 
@@ -11,10 +14,12 @@ class fakeModel:
     def __init__(self):
         self.trainable_weights = []
 
-    def load_weights(self, weights):
+    def load_weights(self, weights: str):
         pass
 
-    def __call__(self, *args, **kwargs):
+    def __call__(
+        self, *args: str, **kwargs: int
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
         a = tf.random.uniform((1, 16, 16, 3), minval=0, maxval=1)
         b = tf.random.uniform((1, 16, 16, 9), minval=0, maxval=1)
         return a / tf.reduce_sum(a, axis=-1, keepdims=True), b / tf.reduce_sum(
@@ -23,21 +28,26 @@ class fakeModel:
 
 
 class fakeOptim:
-    def apply_gradients(self, *args, **kwargs):
+    def apply_gradients(self, *args: str, **kwargs: int):
         pass
 
 
 class fakeTape:
-    def GradientTape(self):
+    def GradientTape(self) -> object:
         return self
 
-    def gradient(self, *args, **kwargs):
+    def gradient(self, *args: str, **kwargs: int) -> List[Any]:
         return []
 
-    def __enter__(self):
+    def __enter__(self) -> object:
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ):
         pass
 
 
@@ -59,7 +69,7 @@ class TestTrainCase:
         assert args.lr == 1e-3
         assert args.epochs == 300
 
-    def test_init(self, mocker):
+    def test_init(self, mocker: MockFixture):
         model = fakeModel()
         mocker.patch("dfp.train.loadDataset", return_value=None)
         mocker.patch("dfp.train.deepfloorplanModel", return_value=model)
@@ -67,7 +77,7 @@ class TestTrainCase:
         ds, model, opt = init(args)
         assert isinstance(opt, tf.keras.optimizers.Optimizer)
 
-    def test_trainstep(self, mocker):
+    def test_trainstep(self, mocker: MockFixture):
         model = fakeModel()
         tape = fakeTape()
         optim = fakeOptim()

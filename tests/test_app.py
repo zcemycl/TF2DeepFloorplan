@@ -1,9 +1,13 @@
 import os
 from argparse import Namespace
+from types import TracebackType
+from typing import Any, Dict, Optional, Type
 
 import pytest
 
 import numpy as np
+from flask.testing import FlaskClient
+from pytest_mock import MockFixture
 
 from dfp.app import app as create_app
 
@@ -12,21 +16,26 @@ class fakeMultiprocessing:
     def Pool(self):
         return self
 
-    def map(self, *args, **kwargs):
+    def map(self, *args: str, **kwargs: int) -> np.ndarray:
         return np.zeros([1, 32, 32, 3])
 
-    def __enter__(self):
+    def __enter__(self) -> object:
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ):
         pass
 
-    def __getitem__(self):
+    def __getitem__(self) -> np.ndarray:
         return np.zeros([1, 32, 32, 3])
 
 
 @pytest.fixture
-def client(mocker):
+def client(mocker: MockFixture) -> FlaskClient:
     mp = fakeMultiprocessing()
     args = Namespace(
         image="resources/30939153.jpg",
@@ -48,28 +57,28 @@ def client(mocker):
     return create_app.test_client()
 
 
-def test_app_home(client):
+def test_app_home(client: FlaskClient):
     resp = client.get("/")
     assert resp.status_code == 200
     assert isinstance(resp.json, dict)
     assert resp.json.get("message", "Hello Flask!")
 
 
-def test_app_process_image(client):
+def test_app_process_image(client: FlaskClient):
     resp = client.post("/process")
     assert resp.status_code == 400
 
 
-def test_app_mock_process_empty(client):
-    headers = {}
-    data = {}
+def test_app_mock_process_empty(client: FlaskClient):
+    headers: Dict[Any, Any] = {}
+    data: Dict[Any, Any] = {}
     resp = client.post("/process", headers=headers, json=data)
     assert resp.status_code == 200
     assert resp.json.get("message", "success!")
 
 
-def test_app_mock_process_uri(client):
-    headers = {}
+def test_app_mock_process_uri(client: FlaskClient):
+    headers: Dict[Any, Any] = {}
     data = {
         "uri": "",
         "postprocess": 1,
@@ -82,7 +91,7 @@ def test_app_mock_process_uri(client):
     assert resp.json.get("message", "success!")
 
 
-def test_app_mock_process_file(client):
+def test_app_mock_process_file(client: FlaskClient):
     files = {"file": (open("resources/30939153.jpg", "rb"), "30939153.jpg")}
     resp = client.post("/process", data=files)
     os.system("rm *.jpg")
