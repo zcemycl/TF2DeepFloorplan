@@ -4,7 +4,7 @@ import os
 import sys
 
 # import pdb
-from typing import Tuple
+from typing import List, Tuple
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -172,7 +172,7 @@ def main(config: argparse.Namespace) -> np.ndarray:
     return result
 
 
-def parse_args(args):
+def parse_args(args: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--image", type=str, default="resources/30939153.jpg")
     p.add_argument("--weight", type=str, default="log/store/G")
@@ -188,7 +188,7 @@ def parse_args(args):
     return p.parse_args(args)
 
 
-def deploy_plot_res(result):
+def deploy_plot_res(result: np.ndarray):
     print(result.shape)
     plt.imshow(result)
     plt.xticks([])

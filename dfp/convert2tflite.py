@@ -1,5 +1,6 @@
 import argparse
 import sys
+from typing import List
 
 import tensorflow as tf
 
@@ -15,7 +16,7 @@ def converter(config: argparse.Namespace):
         f.write(tflite_model)
 
 
-def parse_args(args):
+def parse_args(args: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--modeldir", type=str, default="model/store")
     p.add_argument("--tflitedir", type=str, default="model/store/model.tflite")

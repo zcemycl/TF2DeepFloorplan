@@ -2,7 +2,7 @@ import argparse
 import io
 import os
 import sys
-from typing import Tuple
+from typing import List, Tuple
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -85,7 +85,13 @@ def image_grid(
 
 
 @tf.function
-def train_step(model, optim, img, hr, hb):
+def train_step(
+    model: tf.keras.Model,
+    optim: tf.keras.optimizers.Optimizer,
+    img: tf.Tensor,
+    hr: tf.Tensor,
+    hb: tf.Tensor,
+) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     # forward
     with tf.GradientTape() as tape:
         logits_r, logits_cw = model(img, training=True)
@@ -135,7 +141,7 @@ def main(config: argparse.Namespace):
     # pdb.set_trace()
 
 
-def parse_args(args):
+def parse_args(args: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument("--batchsize", type=int, default=2)
     p.add_argument("--lr", type=float, default=1e-4)

@@ -53,7 +53,7 @@ def loadDataset(size: int = 512) -> tf.data.Dataset:
     return parsed_dataset
 
 
-def plotData(data):
+def plotData(data: Dict[str, str]):
     img, bound, room = decodeAllRaw(data)
     img, bound, room, hb, hr = preprocess(img, bound, room)
     plt.subplot(1, 3, 1)
@@ -64,7 +64,7 @@ def plotData(data):
     plt.imshow(convert_one_hot_to_image(hb)[0].numpy())
 
 
-def main(dataset):
+def main(dataset: tf.data.Dataset):
     for ite in range(2):
         for data in list(dataset.shuffle(400).batch(1)):
             plotData(data)
