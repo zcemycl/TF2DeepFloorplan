@@ -26,7 +26,7 @@ class TestUtilCase:
         assert out.shape == tuple(shape)
 
     def test_refine_room_region(self, shape: List[int]):
-        inp = np.random.randint(2, size=shape)
+        inp = np.random.randint(10, size=shape)
         inp = np.reshape(inp, (*shape, -1))
         out = refine_room_region(inp, inp)
         assert out.shape == (*shape, 1)
