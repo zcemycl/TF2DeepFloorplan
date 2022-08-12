@@ -29,10 +29,7 @@ def conv2d(
             dim, size, strides=stride, padding=pad, dilation_rate=rate
         )
     )
-    if act == "leaky":
-        result.add(tf.keras.layers.LeakyReLU())
-    elif act == "relu":
-        result.add(tf.keras.layers.ReLU())
+    eval("result.add(tf.keras.layers." + act + "())")
     return result
 
 
@@ -57,8 +54,7 @@ def upconv2d(
     result.add(
         tf.keras.layers.Conv2DTranspose(dim, size, strides=stride, padding=pad)
     )
-    if act == "relu":
-        result.add(tf.keras.layers.ReLU())
+    eval("result.add(tf.keras.layers." + act + "())")
     return result
 
 
