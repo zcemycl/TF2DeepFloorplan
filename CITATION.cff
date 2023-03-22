@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this software, please star and cite it as below. "
+authors:
+  - family-names: Leung
+    given-names: Yui Chun
+title: "TF2DeepFloorplan"
+version: 0.0.0
+date-released:  2022-11-12
+repository-code: "https://github.com/zcemycl/TF2DeepFloorplan"
