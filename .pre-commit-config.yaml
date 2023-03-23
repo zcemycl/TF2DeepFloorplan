@@ -21,7 +21,7 @@ repos:
         verbose: true
 
   - repo: http://github.com/timothycrosley/isort
-    rev: 5.12.1
+    rev: 5.12.0
     hooks:
       - id: isort
         entry: isort
