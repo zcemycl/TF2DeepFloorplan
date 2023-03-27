@@ -64,7 +64,7 @@ jobs:
       - name: Test with pytest
         run: |
           pip install python-coveralls
-          python -m pytest --cov=./dfp --cov-report term-missing
+          python -m pytest --cov=./dfp --cov-report lcov:lcov.info
           pip install coveragepy-lcov
           coveragepy-lcov --data_file_path .coverage --output_file_path lcov.info
 

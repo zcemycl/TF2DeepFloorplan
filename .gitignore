@@ -143,3 +143,5 @@ cython_debug/
 log/
 model/
 *.tfrecords
+cov.info
+lcov.info
