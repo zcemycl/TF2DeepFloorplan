@@ -17,12 +17,12 @@ Flask-Jsonpify==1.5.0
 Flask-Markdown==0.3
 Flask-WTF==0.14.3
 flake8==4.0.1
-pytest==7.0.1
+pytest
 black==22.3.0
 isort==5.10.1
-pytest-cov==3.0.0
+pytest-cov
 mypy==0.961
-pytest-mock==3.7.0
+pytest-mock
 pytest-flask==1.2.0
 protobuf==3.20.0
 chardet
