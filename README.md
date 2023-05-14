@@ -98,31 +98,15 @@ curl --request POST -F "file=@resources/30939153.jpg;type=image/jpeg" \
 
 ## Google Colab
 1. Click on [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) and authorize access.
-2. Run the first code cell for installation.
+2. Run the first 2 code cells for installation.
 3. Go to Runtime Tab, click on Restart runtime. This ensures the packages installed are enabled.
 4. Run the rest of the notebook.
-
-## Deep Floorplan package
-1. Install as a package.
-```
-pip install -e .
-python setup.py test
-coverage run ./setup.py test
-```
-2. Import as a package.
-```
-import dfp
-from dfp import net, data
-model = net.deepfloorplanModel()
-```
-3. Uninstall package. `pip uninstall Deep_floorplan`
 
 ## How to Contribute?
 1. Git clone this repo.
 2. Install required packages and pre-commit-hooks.
 ```
-pip install -r requirements.txt
-pip install pre-commit
+pip install -e .[tfgpu,api,dev,testing,linting]
 pre-commit install
 pre-commit run
 pre-commit run --all-files
