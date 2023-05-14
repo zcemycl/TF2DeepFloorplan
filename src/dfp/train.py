@@ -7,22 +7,21 @@ from typing import List, Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from tqdm import tqdm
 
-import dfp._paths
-from dfp.data import (
+from .data import (
     convert_one_hot_to_image,
     decodeAllRaw,
     loadDataset,
     preprocess,
 )
-from dfp.loss import balanced_entropy, cross_two_tasks_weight
-from dfp.net import deepfloorplanModel
+from .loss import balanced_entropy, cross_two_tasks_weight
+from .net import deepfloorplanModel
 
 # import pdb
 
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-print(dfp._paths)
 
 
 def init(
@@ -113,7 +112,7 @@ def main(config: argparse.Namespace):
     # training loop
     for epoch in range(config.epochs):
         print("[INFO] Epoch {}".format(epoch))
-        for data in list(dataset.shuffle(400).batch(config.batchsize)):
+        for data in tqdm(list(dataset.shuffle(400).batch(config.batchsize))):
             img, bound, room = decodeAllRaw(data)
             img, bound, room, hb, hr = preprocess(img, bound, room)
             logits_r, logits_cw, loss, loss1, loss2 = train_step(
