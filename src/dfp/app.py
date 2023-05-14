@@ -10,7 +10,6 @@ from flask import Flask, request, send_file
 from werkzeug.datastructures import FileStorage
 from werkzeug.local import LocalProxy
 
-# import dfp._paths
 from .deploy import main
 
 app = Flask(__name__)

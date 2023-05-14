@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tqdm import tqdm
 
-# import dfp._paths
 from .data import (
     convert_one_hot_to_image,
     decodeAllRaw,
@@ -23,7 +22,6 @@ from .net import deepfloorplanModel
 
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-# print(dfp._paths)
 
 
 def init(

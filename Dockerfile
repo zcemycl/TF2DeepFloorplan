@@ -5,16 +5,25 @@ RUN apt-get -y update
 RUN apt-get install -y python3-pip software-properties-common wget ffmpeg
 
 COPY requirements.txt /
+ADD src src
+COPY setup.cfg /
+COPY setup.py /
+COPY pyproject.toml /
 RUN pip install --upgrade pip setuptools wheel
-RUN pip install -r /requirements.txt
+WORKDIR /
+RUN ls -la
+ENV AM_I_IN_A_DOCKER_CONTAINER Yes
+RUN pip install opencv-python==4.4.0.44
+RUN pip install cmake
+RUN pip install -e .[tfgpu,api]
 # RUN gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON
 # RUN unzip log.zip
 # RUN rm log.zip
 ADD log log
-ADD dfp dfp
+
 COPY resources /usr/local/resources
 RUN mv /usr/local/resources .
 
-CMD ["python","dfp/app.py"]
+CMD ["python","-m","dfp.app"]
 
 EXPOSE 1111
