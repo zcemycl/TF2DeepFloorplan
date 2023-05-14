@@ -15,7 +15,8 @@ Depends on different applications, the following installation methods can
 |MacOS|M1 Chip|Model Development|`pip install -e .[tfmacm1,dev,testing,linting]`|
 |Ubuntu|GPU|Model Deployment API|`pip install -e .[tfgpu,api]`|
 |Ubuntu|GPU|Model Development and Deployment API|`pip install -e .[tfgpu,api,dev,testing,linting]`|
-|Agnostic|...|...|(to be updated)|
+|Agnostic|...|Docker|(to be updated)|
+|Ubuntu|GPU|Notebook|`pip install -e .[tfgpu,jupyter]`|
 
 ## How to run?
 1. Install packages.
@@ -24,7 +25,7 @@ Depends on different applications, the following installation methods can
 python -m venv venv
 source venv/bin/activate
 pip install --upgrade pip setuptools wheel
-# Option 2
+# Option 2 (Preferred)
 conda create -n venv python=3.8 cudatoolkit=10.1 cudnn=7.6.5
 conda activate venv
 # common install
@@ -63,7 +64,7 @@ unzip tflite.zip
 ```
 7. Deploy the model via `deploy.py`, please be aware that load method parameter should match with weight input.
 ```
-python dfp/deploy.py [--image 'path/to/image']
+python -m dfp.deploy [--image 'path/to/image']
 [--postprocess][--colorize][--save 'path/to/output_image']
 [--loadmethod 'log'/'pb'/'tflite']
 [--weight 'log/store/G'/'model/store'/'model/store/model.tflite']
@@ -71,7 +72,7 @@ python dfp/deploy.py [--image 'path/to/image']
 ```
 - for example,
 ```
-python dfp/deploy.py --image floorplan.jpg --weight log/store/G
+python -m dfp.deploy --image floorplan.jpg --weight log/store/G
 --postprocess --colorize --save output.jpg --loadmethod log
 ```
 
