@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-gpu-py3
+FROM tensorflow/tensorflow:latest-gpu
 
 RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
 RUN apt-get -y update
@@ -11,7 +11,6 @@ COPY setup.py /
 COPY pyproject.toml /
 RUN pip install --upgrade pip setuptools wheel
 WORKDIR /
-RUN ls -la
 ENV AM_I_IN_A_DOCKER_CONTAINER Yes
 RUN pip install opencv-python==4.4.0.44
 RUN pip install cmake

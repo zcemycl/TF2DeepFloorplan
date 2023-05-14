@@ -6,7 +6,7 @@ tensorflow-model-optimization
 scipy
 Pillow
 gdown
-protobuf
+protobuf==3.20.0
 chardet
 types-requests
 pytype

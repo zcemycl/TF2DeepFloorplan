@@ -54,6 +54,7 @@ class fakeRequest:
         self.form = fakeForm(
             {"postprocess": "0", "colorize": "0", "output": "/tmp"}
         )
+        # self.files = []
         self.json = fakeForm({})
 
 
