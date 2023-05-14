@@ -10,10 +10,8 @@ from flask import Flask, request, send_file
 from werkzeug.datastructures import FileStorage
 from werkzeug.local import LocalProxy
 
-import dfp._paths
-from dfp.deploy import main
+from .deploy import main
 
-print(dfp._paths)
 app = Flask(__name__)
 
 
@@ -79,6 +77,36 @@ def process_image():
             finname = fnum + ".jpg"
             print("files: ", request.files)
             print(request.files["file"])
+            args = Namespace(
+                image=finname,
+                weight="log/store/G",
+                loadmethod="log",
+                postprocess=True,
+                colorize=True,
+                save=os.path.join(output, foutname),
+            )
+            print(args)
+
+            with mp.Pool() as pool:
+                result = pool.map(main, [args])[0]
+
+            print("Output Image shape: ", np.array(result).shape)
+
+            if args.save:
+                mpimg.imsave(args.save, np.array(result).astype(np.uint8))
+
+            try:
+                callback = send_file(
+                    os.path.join(output, foutname), mimetype="image/jpg"
+                )
+                return callback, 200
+            except Exception:
+                return {"message": "send error"}, 400
+            finally:
+                os.system("rm " + os.path.join(output, foutname))
+                if finname != "resources/30939153.jpg":
+                    os.system("rm " + finname)
+
         except Exception:
             return {"message": "input error"}, 400
 

@@ -2,7 +2,7 @@
 line-length = 79
 include = '''
 /(
-    dfp
+    src
   | tests
 )/
 '''
@@ -24,8 +24,8 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
-src_paths = [".","dfp", "tests"]
+src_paths = [".","src", "tests"]
 skip=[".tox",".nox","venv","build","dist","resources","model","log"]
 skip_glob=["venv/*","build/*","dist/*","resources/*"]
 sections="FUTURE,STDLIB,SETUPTOOLS,TEST,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
-known_first_party = "dfp"
+known_first_party = "src"
