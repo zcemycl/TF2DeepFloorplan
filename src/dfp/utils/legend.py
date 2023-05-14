@@ -4,10 +4,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-import dfp.utils._paths
-from dfp.utils.rgb_ind_convertor import floorplan_fuse_map
+# import .utils._paths
+from .rgb_ind_convertor import floorplan_fuse_map
 
-print(dfp.utils._paths)
+# print(dfp.utils._paths)
 
 
 def export_legend(

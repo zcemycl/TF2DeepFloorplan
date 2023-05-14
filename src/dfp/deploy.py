@@ -11,18 +11,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
-import dfp._paths
-from dfp.data import convert_one_hot_to_image
-from dfp.net import deepfloorplanModel
-from dfp.utils.rgb_ind_convertor import (
+# import dfp._paths
+from .data import convert_one_hot_to_image
+from .net import deepfloorplanModel
+from .utils.rgb_ind_convertor import (
     floorplan_boundary_map,
     floorplan_fuse_map,
     ind2rgb,
 )
-from dfp.utils.util import fill_break_line, flood_fill, refine_room_region
+from .utils.util import fill_break_line, flood_fill, refine_room_region
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-print(dfp._paths)
 
 
 def init(

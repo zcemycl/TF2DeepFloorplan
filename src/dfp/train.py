@@ -8,21 +8,21 @@ import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import dfp._paths
-from dfp.data import (
+# import dfp._paths
+from .data import (
     convert_one_hot_to_image,
     decodeAllRaw,
     loadDataset,
     preprocess,
 )
-from dfp.loss import balanced_entropy, cross_two_tasks_weight
-from dfp.net import deepfloorplanModel
+from .loss import balanced_entropy, cross_two_tasks_weight
+from .net import deepfloorplanModel
 
 # import pdb
 
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-print(dfp._paths)
+# print(dfp._paths)
 
 
 def init(

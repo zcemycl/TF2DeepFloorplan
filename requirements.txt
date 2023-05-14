@@ -24,3 +24,5 @@ pytest-cov==3.0.0
 mypy==0.961
 pytest-mock==3.7.0
 pytest-flask==1.2.0
+protobuf==3.20.0
+chardet
