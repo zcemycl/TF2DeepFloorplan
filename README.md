@@ -6,8 +6,7 @@ Network Architectures from the paper, <br>
 <img src="resources/dfpmodel.png" width="50%"><img src="resources/features.png" width="50%">
 
 ## Requirements
-Install the packages stated in `requirements.txt`, including `matplotlib`,`numpy`,`opencv-python`,`pdbpp`, `tensorflow-gpu` and `tensorboard`. <br>
-The code has been tested under the environment of Python 3.7.4 with tensorflow-gpu==2.3.0, cudnn==7.6.5 and cuda10.1_0. Used Nvidia RTX2080-Ti eGPU, 60 epochs take approximately 1 hour to complete.
+Depends on different applications, the following installation methods can
 
 |OS|Hardware|Application|Command|
 |---|---|---|---|
@@ -15,25 +14,32 @@ The code has been tested under the environment of Python 3.7.4 with tensorflow-g
 |Ubuntu|GPU|Model Development|`pip install -e .[tfgpu,dev,testing,linting]`|
 |MacOS|M1 Chip|Model Development|`pip install -e .[tfmacm1,dev,testing,linting]`|
 |Ubuntu|GPU|Model Deployment API|`pip install -e .[tfgpu,api]`|
+|Ubuntu|GPU|Model Development and Deployment API|`pip install -e .[tfgpu,api,dev,testing,linting]`|
+|Agnostic|...|...|(to be updated)|
 
 ## How to run?
-1. Install packages via `pip` and `requirements.txt`.
+1. Install packages.
 ```
+# Option 1
 python -m venv venv
 source venv/bin/activate
 pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
+# Option 2
+conda create -n venv python=3.8 cudatoolkit=10.1 cudnn=7.6.5
+conda activate venv
+# common install
+pip install -e .[tfgpu,api,dev,testing,linting]
 ```
 2. According to the original repo, please download r3d dataset and transform it to tfrecords `r3d.tfrecords`. Friendly reminder: there is another dataset r2v used to train their original repo's model, I did not use it here cos of limited access. Please see the link here [https://github.com/zlzeng/DeepFloorplan/issues/17](https://github.com/zlzeng/DeepFloorplan/issues/17).
 3. Run the `train.py` file  to initiate the training, model checkpoint is stored as `log/store/G` and weight is in `model/store`,
 ```
-python dfp/train.py [--batchsize 2][--lr 1e-4][--epochs 1000]
+python -m dfp.train [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--modeldir 'model/store']
 [--saveTensorInterval 10][--saveModelInterval 20]
 ```
 - for example,
 ```
-python dfp/train.py --batchsize=8 --lr=1e-4 --epochs=60
+python -m dfp.train --batchsize=4 --lr=5e-4 --epochs=100
 --logdir=log/store --modeldir=model/store
 ```
 4. Run Tensorboard to view the progress of loss and images via,
@@ -42,7 +48,7 @@ tensorboard --logdir=log/store
 ```
 5. Convert model to tflite via `convert2tflite.py`.
 ```
-python dfp/convert2tflite.py [--modeldir model/store]
+python -m dfp.convert2tflite [--modeldir model/store]
 [--tflitedir model/store/model.tflite]
 [--quantize]
 ```

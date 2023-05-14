@@ -1,6 +1,8 @@
 channels:
   - defaults
 dependencies:
+  - python=3.8
   - cudatoolkit=10.1
+  - cudnn=7.6.5
   - pip:
     - -e .[tfgpu,api,dev,testing,linting]

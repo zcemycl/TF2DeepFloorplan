@@ -7,6 +7,7 @@ from typing import List, Tuple
 import matplotlib
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from tqdm import tqdm
 
 # import dfp._paths
 from .data import (
@@ -113,7 +114,7 @@ def main(config: argparse.Namespace):
     # training loop
     for epoch in range(config.epochs):
         print("[INFO] Epoch {}".format(epoch))
-        for data in list(dataset.shuffle(400).batch(config.batchsize)):
+        for data in tqdm(list(dataset.shuffle(400).batch(config.batchsize))):
             img, bound, room = decodeAllRaw(data)
             img, bound, room, hb, hr = preprocess(img, bound, room)
             logits_r, logits_cw, loss, loss1, loss2 = train_step(
