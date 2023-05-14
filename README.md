@@ -1,4 +1,5 @@
-# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) ![example workflow](https://github.com/zcemycl/TF2DeepFloorplan/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/zcemycl/TF2DeepFloorplan/badge.svg?branch=main)](https://coveralls.io/github/zcemycl/TF2DeepFloorplan?branch=main) [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzcemycl%2FTF2DeepFloorplan&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) ![example workflow](https://github.com/zcemycl/TF2DeepFloorplan/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/zcemycl/TF2DeepFloorplan/badge.svg?branch=main)](https://coveralls.io/github/zcemycl/TF2DeepFloorplan?branch=main)
+<!-- [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzcemycl%2FTF2DeepFloorplan&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com) -->
 This repo contains a basic procedure to train and deploy the DNN model suggested by the paper ['Deep Floor Plan Recognition using a Multi-task Network with Room-boundary-Guided Attention'](https://arxiv.org/abs/1908.11025). It rewrites the original codes from [zlzeng/DeepFloorplan](https://github.com/zlzeng/DeepFloorplan) into newer versions of Tensorflow and Python.
 <br>
 Network Architectures from the paper, <br>
@@ -7,6 +8,13 @@ Network Architectures from the paper, <br>
 ## Requirements
 Install the packages stated in `requirements.txt`, including `matplotlib`,`numpy`,`opencv-python`,`pdbpp`, `tensorflow-gpu` and `tensorboard`. <br>
 The code has been tested under the environment of Python 3.7.4 with tensorflow-gpu==2.3.0, cudnn==7.6.5 and cuda10.1_0. Used Nvidia RTX2080-Ti eGPU, 60 epochs take approximately 1 hour to complete.
+
+|OS|Hardware|Application|Command|
+|---|---|---|---|
+|Ubuntu|CPU|Model Development|`pip install -e .[tfcpu,dev,testing,linting]`|
+|Ubuntu|GPU|Model Development|`pip install -e .[tfgpu,dev,testing,linting]`|
+|MacOS|M1 Chip|Model Development|`pip install -e .[tfmacm1,dev,testing,linting]`|
+|Ubuntu|GPU|Model Deployment API|`pip install -e .[tfgpu,api]`|
 
 ## How to run?
 1. Install packages via `pip` and `requirements.txt`.
