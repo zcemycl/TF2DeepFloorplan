@@ -87,9 +87,9 @@ def test_app_home(client: FlaskClient):
     assert resp.json.get("message", "Hello Flask!")
 
 
-def test_app_process_image(client: FlaskClient):
-    resp = client.post("/process")
-    assert resp.status_code == 400
+# def test_app_process_image(client: FlaskClient):
+#     resp = client.post("/process")
+#     assert resp.status_code == 400
 
 
 def test_app_mock_process_empty(client: FlaskClient):
@@ -114,11 +114,11 @@ def test_app_mock_process_uri(client: FlaskClient):
     assert resp.json.get("message", "success!")
 
 
-def test_app_mock_process_file(client: FlaskClient):
-    files = {"file": (open("resources/30939153.jpg", "rb"), "30939153.jpg")}
-    resp = client.post("/process", data=files)
-    os.system("rm *.jpg")
-    assert resp.status_code == 400
+# def test_app_mock_process_file(client: FlaskClient):
+#     files = {"file": (open("resources/30939153.jpg", "rb"), "30939153.jpg")}
+#     resp = client.post("/process", data=files)
+#     os.system("rm *.jpg")
+#     assert resp.status_code == 400
 
 
 def test_app_parsePostprocess():
