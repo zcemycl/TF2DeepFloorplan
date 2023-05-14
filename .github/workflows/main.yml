@@ -35,6 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install matplotlib numpy opencv-python pdbpp tensorboard tensorflow-cpu scipy Pillow gdown isort black flake8
           pip install mypy types-requests pytype pytest pytest-cov pre-commit pytest-mock pytest-flask
+          pip install -e .
 
       - name: Precommit check
         run: |
