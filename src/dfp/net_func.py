@@ -16,15 +16,6 @@ from tensorflow.keras.models import Model
 
 
 @tf.function
-def calculate_feature_dim(H: int, W: int, stride: int = 4):
-    hs = H // stride if (H // stride) > 1 else (stride - 1)
-    vs = W // stride if (W // stride) > 1 else (stride - 1)
-    hs = hs if (hs % 2 != 0) else hs + 1
-    vs = hs if (vs % 2 != 0) else vs + 1
-    return tf.constant(hs), tf.constant(vs)
-
-
-@tf.function
 def vertical_horizontal_filters(h: int, w: int) -> Tuple[tf.Tensor, tf.Tensor]:
     return tf.ones([1, h, 1, 1]), tf.ones([w, 1, 1, 1])
 
@@ -105,7 +96,11 @@ def deepfloorplanFunc():
         x_ = Multiply()([xf, x_])
 
         _, H, W, _ = xf.shape
-        hs, vs = calculate_feature_dim(H, W)
+        stride = 4
+        hs = H // stride if (H // stride) > 1 else (stride - 1)
+        vs = W // stride if (W // stride) > 1 else (stride - 1)
+        hs = hs if (hs % 2 != 0) else hs + 1
+        vs = hs if (vs % 2 != 0) else vs + 1
         vf, hf = vertical_horizontal_filters(vs, hs)
         df, dfr = diagonal_filters(vs, hs)
 
@@ -143,4 +138,5 @@ def deepfloorplanFunc():
 
 
 if __name__ == "__main__":
-    _ = deepfloorplanFunc()
+    model = deepfloorplanFunc()
+    model.save("/tmp/tmp")

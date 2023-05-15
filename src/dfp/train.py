@@ -1,6 +1,8 @@
 import argparse
 import io
 import os
+
+# import pdb
 import sys
 from typing import List, Tuple
 
@@ -33,6 +35,7 @@ def init(
         model = deepfloorplanModel()
     elif config.tfmodel == "func":
         model = deepfloorplanFunc()
+    os.system(f"mkdir -p {config.modeldir}")
     if config.weight:
         model.load_weights(config.weight)
     # optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,
@@ -137,6 +140,7 @@ def main(config: argparse.Namespace):
 
         # save model
         if epoch % config.saveModelInterval == 0:
+            # pdb.set_trace()
             model.save_weights(config.logdir + "/G")
             model.save(config.modeldir)
             print("[INFO] Saving Model ...")

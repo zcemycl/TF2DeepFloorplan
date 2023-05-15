@@ -145,3 +145,4 @@ model/
 *.tfrecords
 cov.info
 lcov.info
+*.h5
