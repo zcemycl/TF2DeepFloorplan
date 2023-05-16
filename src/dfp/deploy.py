@@ -130,7 +130,6 @@ def colorize(r: np.ndarray, cw: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 
 def main(config: argparse.Namespace) -> np.ndarray:
     model, img, shp = init(config)
-    # pdb.set_trace()
     if config.loadmethod == "tflite":
         input_details = model.get_input_details()
         output_details = model.get_output_details()
@@ -213,4 +212,3 @@ if __name__ == "__main__":
     result = main(args)
     deploy_plot_res(result)
     plt.show()
-    # pdb.set_trace()

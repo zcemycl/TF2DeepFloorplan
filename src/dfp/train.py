@@ -1,8 +1,6 @@
 import argparse
 import io
 import os
-
-# import pdb
 import sys
 from typing import List, Tuple
 
@@ -20,9 +18,6 @@ from .data import (
 from .loss import balanced_entropy, cross_two_tasks_weight
 from .net import deepfloorplanModel
 from .net_func import deepfloorplanFunc
-
-# import pdb
-
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -140,12 +135,9 @@ def main(config: argparse.Namespace):
 
         # save model
         if epoch % config.saveModelInterval == 0:
-            # pdb.set_trace()
             model.save_weights(config.logdir + "/G")
             model.save(config.modeldir)
             print("[INFO] Saving Model ...")
-
-    # pdb.set_trace()
 
 
 def parse_args(args: List[str]) -> argparse.Namespace:
