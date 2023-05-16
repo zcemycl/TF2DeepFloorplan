@@ -57,5 +57,7 @@ def test_converter(mocker: MockFixture):
         quantize=True,
         tflitedir="model/store/model.tflite",
         modeldir="model/store",
+        compress_mode="quantization",
+        tfmodel="subclass",
     )
     converter(args)
