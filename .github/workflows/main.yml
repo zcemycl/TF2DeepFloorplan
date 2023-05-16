@@ -9,7 +9,8 @@ on:
     branches:
       - '*'
   pull_request:
-    branches: [ main ]
+    branches:
+      - '*'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -40,24 +41,6 @@ jobs:
           pre-commit install
           SKIP=pytest-check pre-commit run
           SKIP=pytest-check pre-commit run --all-files
-
-      # - name: Sort Import
-      #   run: |
-      #     isort --profile black .
-
-      # - name: Reformat scripts via Black
-      #   run: |
-      #     black dfp/*.py
-      #     black dfp/utils/*.py
-      #     black tests/*.py
-
-      # - name: Check standard coding style (PEP8)
-      #   run: |
-      #     flake8 .
-
-      # - name: Type checking
-      #   run: |
-      #     python -m mypy .
 
       # Test python scripts
       - name: Test with pytest
