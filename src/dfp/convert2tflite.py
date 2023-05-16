@@ -9,8 +9,8 @@ import tensorflow_model_optimization as tfmot
 from tqdm import tqdm
 
 from .data import decodeAllRaw, loadDataset, preprocess
-from .loss import balanced_entropy, cross_two_tasks_weight
 from .net_func import deepfloorplanFunc
+from .train import train_step
 from .utils.util import (
     print_model_weight_clusters,
     print_model_weights_sparsity,
@@ -88,19 +88,9 @@ def prune(config: argparse.Namespace):
             )  # run pruning callback
             img, bound, room = decodeAllRaw(data)
             img, bound, room, hb, hr = preprocess(img, bound, room)
-
-            with tf.GradientTape() as tape:
-                logits_r, logits_cw = model_for_pruning(img, training=True)
-                loss1 = balanced_entropy(logits_r, hr)
-                loss2 = balanced_entropy(logits_cw, hb)
-                w1, w2 = cross_two_tasks_weight(hr, hb)
-                loss_value = w1 * loss1 + w2 * loss2
-                grads = tape.gradient(
-                    loss_value, model_for_pruning.trainable_variables
-                )
-                optimizer.apply_gradients(
-                    zip(grads, model_for_pruning.trainable_variables)
-                )
+            _, _, loss_value, _, _ = train_step(
+                model_for_pruning, optimizer, img, hr, hb
+            )
 
         step_callback.on_epoch_end(batch=unused_arg)  # run pruning callback
 
@@ -151,18 +141,8 @@ def cluster(config: argparse.Namespace):
         for data in tqdm(list(dataset.batch(8))):
             img, bound, room = decodeAllRaw(data)
             img, bound, room, hb, hr = preprocess(img, bound, room)
-
-            with tf.GradientTape() as tape:
-                logits_r, logits_cw = clustered_model(img, training=True)
-                loss1 = balanced_entropy(logits_r, hr)
-                loss2 = balanced_entropy(logits_cw, hb)
-                w1, w2 = cross_two_tasks_weight(hr, hb)
-                loss_value = w1 * loss1 + w2 * loss2
-            grads = tape.gradient(
-                loss_value, clustered_model.trainable_weights
-            )
-            optimizer.apply_gradients(
-                zip(grads, clustered_model.trainable_weights)
+            _, _, loss_value, _, _ = train_step(
+                clustered_model, optimizer, img, hr, hb
             )
 
     log_dir = tempfile.mkdtemp()
@@ -172,7 +152,7 @@ def cluster(config: argparse.Namespace):
     final_model.save(log_dir + "/cluster")
 
     converter = tf.lite.TFLiteConverter.from_keras_model(final_model)
-    # converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
     clustered_tflite_model = converter.convert()
 
     os.system(f"mkdir -p {log_dir}/tflite")
@@ -180,10 +160,55 @@ def cluster(config: argparse.Namespace):
         f.write(clustered_tflite_model)
 
 
+def quantization_aware_training(config: argparse.Namespace):
+    base_model = model_init(config)
+
+    def apply_quantization_to_conv2D(layer):
+        if isinstance(layer, tf.keras.layers.Conv2D):
+            return tfmot.quantization.keras.quantize_annotate_layer(layer)
+        return layer
+
+    raise Exception("Not supported")
+
+    annotated_model = tf.keras.models.clone_model(
+        base_model,
+        clone_function=apply_quantization_to_conv2D,
+    )
+    quant_aware_model = tfmot.quantization.keras.quantize_apply(
+        annotated_model
+    )
+    # quant_aware_model = tfmot.quantization.keras.quantize_model(base_model)
+    print(quant_aware_model.summary())
+
+    dataset = loadDataset()
+    optimizer = tf.keras.optimizers.Adam()
+
+    for epoch in range(4):
+        print("[INFO] Epoch {}".format(epoch))
+        for data in tqdm(list(dataset.batch(8))):
+            img, bound, room = decodeAllRaw(data)
+            img, bound, room, hb, hr = preprocess(img, bound, room)
+            _, _, loss_value, _, _ = train_step(
+                quant_aware_model, optimizer, img, hr, hb
+            )
+
+    log_dir = tempfile.mkdtemp()
+    print("log directory: " + log_dir)
+
+    converter = tf.lite.TFLiteConverter.from_keras_model(quant_aware_model)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    quantized_tflite_model = converter.convert()
+
+    os.system(f"mkdir -p {log_dir}/tflite")
+    with open(log_dir + "/tflite/model.tflite", "wb") as f:
+        f.write(quantized_tflite_model)
+
+
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
 
     if args.compress_mode == "quantization" or args.quantize:
+        quantization_aware_training(args)
         converter(args)
     if args.tfmodel == "func":
         if args.compress_mode == "prune":
