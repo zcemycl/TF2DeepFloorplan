@@ -59,5 +59,6 @@ def test_converter(mocker: MockFixture):
         modeldir="model/store",
         compress_mode="quantization",
         tfmodel="subclass",
+        loadmethod="pb",
     )
     converter(args)
