@@ -83,6 +83,7 @@ def process_image():
                 loadmethod="log",
                 postprocess=True,
                 colorize=True,
+                tfmodel="subclass",
                 save=os.path.join(output, foutname),
             )
             print(args)
@@ -130,6 +131,7 @@ def process_image():
         loadmethod="log",
         postprocess=postprocess,
         colorize=colorize,
+        tfmodel="subclass",
         save=os.path.join(output, foutname),
     )
     print(args)

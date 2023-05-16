@@ -17,9 +17,7 @@ from .data import (
 )
 from .loss import balanced_entropy, cross_two_tasks_weight
 from .net import deepfloorplanModel
-
-# import pdb
-
+from .net_func import deepfloorplanFunc
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -28,7 +26,11 @@ def init(
     config: argparse.Namespace,
 ) -> Tuple[tf.data.Dataset, tf.keras.Model, tf.keras.optimizers.Optimizer]:
     dataset = loadDataset()
-    model = deepfloorplanModel()
+    if config.tfmodel == "subclass":
+        model = deepfloorplanModel()
+    elif config.tfmodel == "func":
+        model = deepfloorplanFunc()
+    os.system(f"mkdir -p {config.modeldir}")
     if config.weight:
         model.load_weights(config.weight)
     # optim = tf.keras.optimizers.AdamW(learning_rate=config.lr,
@@ -137,11 +139,12 @@ def main(config: argparse.Namespace):
             model.save(config.modeldir)
             print("[INFO] Saving Model ...")
 
-    # pdb.set_trace()
-
 
 def parse_args(args: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser()
+    p.add_argument(
+        "--tfmodel", type=str, default="subclass", choices=["subclass", "func"]
+    )
     p.add_argument("--batchsize", type=int, default=2)
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--wd", type=float, default=1e-5)
