@@ -2,8 +2,6 @@ import argparse
 import gc
 import os
 import sys
-
-# import pdb
 from typing import List, Tuple
 
 import matplotlib.image as mpimg
@@ -13,6 +11,7 @@ import tensorflow as tf
 
 from .data import convert_one_hot_to_image
 from .net import deepfloorplanModel
+from .net_func import deepfloorplanFunc
 from .utils.rgb_ind_convertor import (
     floorplan_boundary_map,
     floorplan_fuse_map,
@@ -26,7 +25,10 @@ os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 def init(
     config: argparse.Namespace,
 ) -> Tuple[tf.keras.Model, tf.Tensor, np.ndarray]:
-    model = deepfloorplanModel()
+    if config.tfmodel == "subclass":
+        model = deepfloorplanModel()
+    elif config.tfmodel == "func":
+        model = deepfloorplanFunc()
     if config.loadmethod == "log":
         model.load_weights(config.weight)
     elif config.loadmethod == "pb":
@@ -43,7 +45,8 @@ def init(
     if config.loadmethod == "tflite":
         return model, img, shp
     model.trainable = False
-    model.vgg16.trainable = False
+    if config.tfmodel == "subclass":
+        model.vgg16.trainable = False
     return model, img, shp
 
 
@@ -127,19 +130,27 @@ def colorize(r: np.ndarray, cw: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 
 def main(config: argparse.Namespace) -> np.ndarray:
     model, img, shp = init(config)
-    if config.loadmethod == "log":
-        logits_cw, logits_r = predict(model, img, shp)
-    elif config.loadmethod == "pb" or config.loadmethod == "none":
-        logits_r, logits_cw = model(img)
-    elif config.loadmethod == "tflite":
+    # pdb.set_trace()
+    if config.loadmethod == "tflite":
         input_details = model.get_input_details()
         output_details = model.get_output_details()
         model.set_tensor(input_details[0]["index"], img)
         model.invoke()
-        logits_r = model.get_tensor(output_details[0]["index"])
-        logits_cw = model.get_tensor(output_details[1]["index"])
+        ri, cwi = 0, 1
+        if config.tfmodel == "func":
+            ri, cwi = 1, 0
+        logits_r = model.get_tensor(output_details[ri]["index"])
+        logits_cw = model.get_tensor(output_details[cwi]["index"])
         logits_cw = tf.convert_to_tensor(logits_cw)
         logits_r = tf.convert_to_tensor(logits_r)
+    else:
+        if config.tfmodel == "func":
+            logits_r, logits_cw = model.predict(img)
+        elif config.tfmodel == "subclass":
+            if config.loadmethod == "log":
+                logits_cw, logits_r = predict(model, img, shp)
+            elif config.loadmethod == "pb" or config.loadmethod == "none":
+                logits_r, logits_cw = model(img)
     logits_r = tf.image.resize(logits_r, shp[:2])
     logits_cw = tf.image.resize(logits_cw, shp[:2])
     r = convert_one_hot_to_image(logits_r)[0].numpy()
@@ -172,6 +183,9 @@ def main(config: argparse.Namespace) -> np.ndarray:
 
 def parse_args(args: List[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser()
+    p.add_argument(
+        "--tfmodel", type=str, default="subclass", choices=["subclass", "func"]
+    )
     p.add_argument("--image", type=str, default="resources/30939153.jpg")
     p.add_argument("--weight", type=str, default="log/store/G")
     p.add_argument("--postprocess", action="store_true")
