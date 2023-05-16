@@ -116,7 +116,9 @@ def test_post_process(h: int, w: int, c: int):
 
 
 def test_parse_args():
-    args = parse_args(["--postprocess", "--loadmethod", "tflite"])
+    args = parse_args(
+        ["--postprocess", "--loadmethod", "tflite", "--tfmodel", "subclass"]
+    )
     assert args.postprocess is True
     assert args.loadmethod == "tflite"
 
@@ -125,7 +127,7 @@ def test_init_none(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
-    args = Namespace(loadmethod="none", image="")
+    args = Namespace(loadmethod="none", image="", tfmodel="subclass")
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
 
@@ -134,7 +136,9 @@ def test_init_log(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
-    args = Namespace(loadmethod="log", image="", weight="log/store/G")
+    args = Namespace(
+        loadmethod="log", image="", weight="log/store/G", tfmodel="subclass"
+    )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
 
@@ -144,7 +148,9 @@ def test_init_pb(mocker: MockFixture):
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
     mocker.patch("dfp.deploy.tf.keras.models.load_model", return_value=model)
-    args = Namespace(loadmethod="pb", image="", weight="model/store")
+    args = Namespace(
+        loadmethod="pb", image="", weight="model/store", tfmodel="subclass"
+    )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
 
@@ -155,7 +161,10 @@ def test_init_tflite(mocker: MockFixture):
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
     mocker.patch("dfp.deploy.tf.lite.Interpreter", return_value=model)
     args = Namespace(
-        loadmethod="tflite", image="", weight="model/store/model.tflite"
+        loadmethod="tflite",
+        image="",
+        weight="model/store/model.tflite",
+        tfmodel="subclass",
     )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
@@ -183,6 +192,7 @@ def test_main(
         colorize=colorize,
         postprocess=postprocess,
         save=True,
+        tfmodel="subclass",
     )
     model, img = model_img
 
@@ -203,6 +213,7 @@ def test_main_tflite(
         colorize=True,
         postprocess=True,
         save=False,
+        tfmodel="subclass",
     )
     model, img = model_img
     mocker.patch("dfp.deploy.init", return_value=(model, img, [16, 16, 3]))
@@ -217,6 +228,7 @@ def test_main_log(model_img: Tuple[fakeModel, tf.Tensor], mocker: MockFixture):
         colorize=True,
         postprocess=True,
         save=False,
+        tfmodel="subclass",
     )
     model, img = model_img
     mocker.patch("dfp.deploy.init", return_value=(model, img, [16, 16, 3]))

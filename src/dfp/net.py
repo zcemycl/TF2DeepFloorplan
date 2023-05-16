@@ -7,9 +7,6 @@ import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model
 
-# import pdb
-
-
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # print('Is gpu available: ',tf.test.is_gpu_available());
