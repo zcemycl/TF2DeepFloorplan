@@ -37,6 +37,7 @@ pip install -e .[tfgpu,api,dev,testing,linting]
 python -m dfp.train [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--modeldir 'model/store']
 [--saveTensorInterval 10][--saveModelInterval 20]
+[--tfmodel 'subclass'/'func']
 ```
 - for example,
 ```
@@ -68,7 +69,7 @@ python -m dfp.deploy [--image 'path/to/image']
 [--postprocess][--colorize][--save 'path/to/output_image']
 [--loadmethod 'log'/'pb'/'tflite']
 [--weight 'log/store/G'/'model/store'/'model/store/model.tflite']
-
+[--tfmodel 'subclass'/'func']
 ```
 - for example,
 ```
