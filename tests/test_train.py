@@ -73,7 +73,9 @@ class TestTrainCase:
         model = fakeModel()
         mocker.patch("dfp.train.loadDataset", return_value=None)
         mocker.patch("dfp.train.deepfloorplanModel", return_value=model)
-        args = Namespace(weight="fakepath", lr=1e-4)
+        args = Namespace(
+            weight="fakepath", lr=1e-4, tfmodel="subclass", modeldir=None
+        )
         ds, model, opt = init(args)
         assert isinstance(opt, tf.keras.optimizers.Optimizer)
 
