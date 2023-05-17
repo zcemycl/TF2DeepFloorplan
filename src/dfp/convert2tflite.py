@@ -35,6 +35,11 @@ def converter(config: argparse.Namespace):
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     if config.quantize:
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    # converter.target_spec.supported_ops = [
+    #     tf.lite.OpsSet.TFLITE_BUILTINS, # enable TensorFlow Lite ops.
+    #     tf.lite.OpsSet.SELECT_TF_OPS,  # enable TensorFlow ops.
+    #     tf.float16
+    # ]
     converter.experimental_new_converter = True
     tflite_model = converter.convert()
     with open(config.tflitedir, "wb") as f:

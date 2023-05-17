@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet import MobileNet
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
+from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.layers import (
     Add,
@@ -17,15 +18,42 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.models import Model
 
 
+def resnet50_backbone(x):
+    layer_names = [
+        "conv1_relu",  # 256x256x64
+        "conv2_block3_out",  # 128x128x256
+        "conv3_block4_out",  # 64x64x512
+        "conv4_block6_out",  # 32x32x1024
+        "conv5_block3_out",  # 16x16x2048
+    ]
+    backbone = ResNet50(weights="imagenet", include_top=False, input_tensor=x)
+    backbone = Model(
+        inputs=x, outputs=backbone.get_layer(layer_names[-1]).output
+    )
+    for layer in backbone.layers:
+        layer.trainable = False
+
+    features = []
+    for layer in backbone.layers:
+        if layer.name in layer_names:
+            features.append(backbone.get_layer(layer.name).output)
+    features = features[::-1]
+    return features
+
+
 def mobilenet_backbone(x):
     layer_names = [
         "conv_pw_1_relu",  # 256x256x64
         "conv_pw_3_relu",  # 128x128x128
         "conv_pw_5_relu",  # 64x64x256
         "conv_pw_7_relu",  # 32x32x512
-        "conv_pw_13_relu",  # 16x16x1280
+        # "conv_pw_13_relu",  # 16x16x1024
+        "conv_pw_12_relu",  # 16x16x1024
     ]
     backbone = MobileNet(weights="imagenet", include_top=False, input_tensor=x)
+    backbone = Model(
+        inputs=x, outputs=backbone.get_layer(layer_names[-1]).output
+    )
     for layer in backbone.layers:
         layer.trainable = False
 
@@ -148,13 +176,13 @@ def attention(xf, x_, rbdim):
 
 
 def deepfloorplanFunc():
-
     inp = Input([512, 512, 3])
-    # features = vgg16_backbone(inp)
-    features = mobilenet_backbone(inp)
+    features = vgg16_backbone(inp)
+    # features = resnet50_backbone(inp)
 
     features_room_boundary = []
-    rbdims = [256, 128, 64, 32]
+    # rbdims = [256, 128, 64, 32]
+    rbdims = [128, 64, 32, 16]
     x = features[0]
     for i in range(len(rbdims)):
         x = Conv2DTranspose(rbdims[i], 4, strides=2, padding="same")(x)
