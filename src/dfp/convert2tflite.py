@@ -116,7 +116,7 @@ def cluster(config: argparse.Namespace):
 
     clustering_params = {
         "number_of_clusters": 8,
-        "cluster_centroids_init": CentroidInitialization.KMEANS_PLUS_PLUS,
+        "cluster_centroids_init": CentroidInitialization.DENSITY_BASED,
     }
 
     def apply_clustering_to_conv2d(layer):
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
 
     if args.compress_mode == "quantization" or args.quantize:
-        quantization_aware_training(args)
+        # quantization_aware_training(args)
         converter(args)
     if args.tfmodel == "func":
         if args.compress_mode == "prune":
