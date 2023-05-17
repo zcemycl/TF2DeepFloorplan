@@ -1,6 +1,6 @@
 from argparse import Namespace
 from types import TracebackType
-from typing import Optional, Type
+from typing import Any, List, Optional, Type
 
 from pytest_mock import MockFixture
 
@@ -33,7 +33,7 @@ class fakeFile:
 
 
 class fakeModel:
-    pass
+    layers: List[Any] = []
 
 
 def test_parse_args():

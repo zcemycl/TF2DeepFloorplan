@@ -23,6 +23,9 @@ def model_init(config: argparse.Namespace) -> tf.keras.Model:
         base_model.load_weights(config.modeldir)
     elif config.loadmethod == "pb":
         base_model = tf.keras.models.load_model(config.modeldir)
+        # need changes later to frozen backbone and constant kernel
+        for layer in base_model.layers:
+            layer.trainable = False
     return base_model
 
 
@@ -63,7 +66,9 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 
 def prune(config: argparse.Namespace):
     base_model = model_init(config)
+    print(base_model.summary())
     model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(base_model)
+    print(model_for_pruning.summary())
     dataset = loadDataset()
     optimizer = tf.keras.optimizers.Adam()
     log_dir = tempfile.mkdtemp()
