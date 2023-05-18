@@ -27,9 +27,9 @@ def init(
 ) -> Tuple[tf.data.Dataset, tf.keras.Model, tf.keras.optimizers.Optimizer]:
     dataset = loadDataset()
     if config.tfmodel == "subclass":
-        model = deepfloorplanModel()
+        model = deepfloorplanModel(config=config)
     elif config.tfmodel == "func":
-        model = deepfloorplanFunc()
+        model = deepfloorplanFunc(config=config)
     os.system(f"mkdir -p {config.modeldir}")
     if config.weight:
         model.load_weights(config.weight)

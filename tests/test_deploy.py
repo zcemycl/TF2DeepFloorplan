@@ -127,7 +127,9 @@ def test_init_none(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
-    args = Namespace(loadmethod="none", image="", tfmodel="subclass")
+    args = parse_args(
+        '--loadmethod none --image "" --tfmodel subclass'.split()
+    )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
 
@@ -136,8 +138,9 @@ def test_init_log(mocker: MockFixture):
     model = fakeModel()
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
-    args = Namespace(
-        loadmethod="log", image="", weight="log/store/G", tfmodel="subclass"
+    args = parse_args(
+        """--loadmethod log --image ""
+--weight log/store/G --tfmodel subclass""".split()
     )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
@@ -148,8 +151,9 @@ def test_init_pb(mocker: MockFixture):
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
     mocker.patch("dfp.deploy.tf.keras.models.load_model", return_value=model)
-    args = Namespace(
-        loadmethod="pb", image="", weight="model/store", tfmodel="subclass"
+    args = parse_args(
+        """--loadmethod pb --image ""
+--weight model/store --tfmodel subclass""".split()
     )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)
@@ -160,11 +164,10 @@ def test_init_tflite(mocker: MockFixture):
     mocker.patch("dfp.deploy.deepfloorplanModel", return_value=model)
     mocker.patch("dfp.deploy.mpimg.imread", return_value=np.zeros([16, 16, 3]))
     mocker.patch("dfp.deploy.tf.lite.Interpreter", return_value=model)
-    args = Namespace(
-        loadmethod="tflite",
-        image="",
-        weight="model/store/model.tflite",
-        tfmodel="subclass",
+    args = parse_args(
+        """--loadmethod tflite --image \"\"
+--weight model/store/model.tflite
+--tfmodel subclass""".split()
     )
     model_, img, shp = init(args)
     assert shp == (16, 16, 3)

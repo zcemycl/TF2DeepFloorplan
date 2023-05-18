@@ -26,9 +26,9 @@ def init(
     config: argparse.Namespace,
 ) -> Tuple[tf.keras.Model, tf.Tensor, np.ndarray]:
     if config.tfmodel == "subclass":
-        model = deepfloorplanModel()
+        model = deepfloorplanModel(config=config)
     elif config.tfmodel == "func":
-        model = deepfloorplanFunc()
+        model = deepfloorplanFunc(config=config)
     if config.loadmethod == "log":
         model.load_weights(config.weight)
     elif config.loadmethod == "pb":
@@ -196,6 +196,32 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         choices=["log", "tflite", "pb", "none"],
     )  # log,tflite,pb
     p.add_argument("--save", type=str)
+    p.add_argument(
+        "--feature-channels",
+        type=int,
+        action="store",
+        default=[256, 128, 64, 32],
+        nargs=4,
+    )
+    p.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet50", "mobilenetv1", "mobilenetv2"],
+    )
+    p.add_argument(
+        "--feature-names",
+        type=str,
+        action="store",
+        nargs=5,
+        default=[
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ],
+    )
     return p.parse_args(args)
 
 
