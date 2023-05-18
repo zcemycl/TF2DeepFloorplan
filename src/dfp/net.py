@@ -70,7 +70,8 @@ class deepfloorplanModel(Model):
         super(deepfloorplanModel, self).__init__()
         self._vgg16init()
         # room boundary prediction (rbp)
-        dimlist = [256, 128, 64, 32]
+        # dimlist = [256, 128, 64, 32]
+        dimlist = [32, 32, 32, 32]
         self.rbpups = [upconv2d(dim=d, act="linear") for d in dimlist]
         self.rbpcv1 = [conv2d(dim=d, act="linear") for d in dimlist]
         self.rbpcv2 = [conv2d(dim=d) for d in dimlist]
