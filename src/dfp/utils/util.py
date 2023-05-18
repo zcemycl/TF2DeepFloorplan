@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import tensorflow as tf
 from scipy import ndimage
 
 
@@ -87,3 +88,35 @@ def refine_room_region(cw_mask: np.ndarray, rm_ind: np.ndarray) -> np.ndarray:
             new_rm_ind += mask * room_types[np.argmax(type_counts)]
 
     return new_rm_ind
+
+
+def print_model_weights_sparsity(model):
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.layers.Wrapper):
+            weights = layer.trainable_weights
+        else:
+            weights = layer.weights
+        for weight in weights:
+            if "kernel" not in weight.name or "centroid" in weight.name:
+                continue
+            weight_size = weight.numpy().size
+            zero_num = np.count_nonzero(weight == 0)
+            print(
+                f"{weight.name}: {zero_num/weight_size:.2%} sparsity ",
+                f"({zero_num}/{weight_size})",
+            )
+
+
+def print_model_weight_clusters(model):
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.layers.Wrapper):
+            weights = layer.trainable_weights
+        else:
+            weights = layer.weights
+        for weight in weights:
+            # ignore auxiliary quantization weights
+            if "quantize_layer" in weight.name:
+                continue
+            if "kernel" in weight.name:
+                unique_count = len(np.unique(weight))
+                print(f"{layer.name}/{weight.name}: {unique_count} clusters ")
