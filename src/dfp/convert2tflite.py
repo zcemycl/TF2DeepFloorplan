@@ -9,6 +9,7 @@ import tensorflow_model_optimization as tfmot
 from tqdm import tqdm
 
 from .data import decodeAllRaw, loadDataset, preprocess
+from .net import deepfloorplanModel
 from .net_func import deepfloorplanFunc
 from .train import train_step
 from .utils.util import (
@@ -19,7 +20,10 @@ from .utils.util import (
 
 def model_init(config: argparse.Namespace) -> tf.keras.Model:
     if config.loadmethod == "log":
-        base_model = deepfloorplanFunc()
+        if config.tfmodel == "subclass":
+            base_model = deepfloorplanModel(config=config)
+        elif config.tfmodel == "func":
+            base_model = deepfloorplanFunc(config=config)
         base_model.load_weights(config.modeldir)
     elif config.loadmethod == "pb":
         base_model = tf.keras.models.load_model(config.modeldir)
@@ -66,6 +70,32 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default="log",
         choices=["log", "tflite", "pb", "none"],
     )  # log,tflite,pb
+    p.add_argument(
+        "--feature-channels",
+        type=int,
+        action="store",
+        default=[256, 128, 64, 32],
+        nargs=4,
+    )
+    p.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet50", "mobilenetv1", "mobilenetv2"],
+    )
+    p.add_argument(
+        "--feature-names",
+        type=str,
+        action="store",
+        nargs=5,
+        default=[
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ],
+    )
     return p.parse_args(args)
 
 
