@@ -1,6 +1,6 @@
 from argparse import Namespace
 from types import TracebackType
-from typing import Optional, Type
+from typing import Any, List, Optional, Type
 
 from pytest_mock import MockFixture
 
@@ -33,7 +33,7 @@ class fakeFile:
 
 
 class fakeModel:
-    pass
+    layers: List[Any] = []
 
 
 def test_parse_args():
@@ -57,5 +57,8 @@ def test_converter(mocker: MockFixture):
         quantize=True,
         tflitedir="model/store/model.tflite",
         modeldir="model/store",
+        compress_mode="quantization",
+        tfmodel="subclass",
+        loadmethod="pb",
     )
     converter(args)

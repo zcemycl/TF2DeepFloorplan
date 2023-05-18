@@ -95,7 +95,7 @@ def train_step(
 ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     # forward
     with tf.GradientTape() as tape:
-        logits_r, logits_cw = model(img, training=True)
+        logits_r, logits_cw = model(img)
         loss1 = balanced_entropy(logits_r, hr)
         loss2 = balanced_entropy(logits_cw, hb)
         w1, w2 = cross_two_tasks_weight(hr, hb)
