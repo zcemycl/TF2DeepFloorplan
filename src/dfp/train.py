@@ -18,6 +18,7 @@ from .data import (
 from .loss import balanced_entropy, cross_two_tasks_weight
 from .net import deepfloorplanModel
 from .net_func import deepfloorplanFunc
+from .utils.settings import overwrite_args_with_toml
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -154,6 +155,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     p.add_argument("--weight", type=str)
     p.add_argument("--saveTensorInterval", type=int, default=10)
     p.add_argument("--saveModelInterval", type=int, default=20)
+    p.add_argument("--tomlfile", type=str, default=None)
     p.add_argument(
         "--feature-channels",
         type=int,
@@ -210,5 +212,6 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    args = overwrite_args_with_toml(args)
     print(args)
     main(args)

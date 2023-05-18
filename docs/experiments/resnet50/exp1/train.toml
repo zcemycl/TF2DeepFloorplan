@@ -1,0 +1,13 @@
+tfmodel = 'func'
+batchsize = 8
+lr = 1e-4
+wd = 1e-5
+epochs = 100
+logdir = 'log/store_resnet50_exp1'
+modeldir = 'model/store_resnet50_exp1'
+weight = ''
+saveTensorInterval = 10
+saveModelInterval = 20
+feature_channels = [256, 128, 64, 32]
+backbone = 'resnet50'
+feature_names = ["conv1_relu", "conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out",]
