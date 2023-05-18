@@ -154,6 +154,57 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     p.add_argument("--weight", type=str)
     p.add_argument("--saveTensorInterval", type=int, default=10)
     p.add_argument("--saveModelInterval", type=int, default=20)
+    p.add_argument(
+        "--feature-channels",
+        type=int,
+        action="store",
+        default=[256, 128, 64, 32],
+        nargs=4,
+    )
+    p.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet50", "mobilenetv1", "mobilenetv2"],
+    )
+    p.add_argument(
+        "--feature-names",
+        type=str,
+        action="store",
+        nargs=5,
+        default=[
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ],
+    )
+    # mobilenetv2
+    # layer_names = [
+    #     "block_1_expand_relu",  # 256x256x96
+    #     "block_3_expand_relu",  # 128x128x144
+    #     "block_5_expand_relu",  # 64x64x192
+    #     "block_13_expand_relu",  # 32x32x576
+    #     "out_relu",  # 16x16x1280
+    # ]
+    # mobilenet
+    # layer_names = [
+    #     "conv_pw_1_relu",  # 256x256x64
+    #     "conv_pw_3_relu",  # 128x128x128
+    #     "conv_pw_5_relu",  # 64x64x256
+    #     "conv_pw_7_relu",  # 32x32x512
+    #     # "conv_pw_13_relu",  # 16x16x1024
+    #     "conv_pw_12_relu",  # 16x16x1024
+    # ]
+    # resnet50
+    # layer_names = [
+    #     "conv1_relu",  # 256x256x64
+    #     "conv2_block3_out",  # 128x128x256
+    #     "conv3_block4_out",  # 64x64x512
+    #     "conv4_block6_out",  # 32x32x1024
+    #     "conv5_block3_out",  # 16x16x2048
+    # ]
     return p.parse_args(args)
 
 
