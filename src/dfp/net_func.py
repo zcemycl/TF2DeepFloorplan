@@ -29,7 +29,7 @@ def resnet50_backbone(x, feature_names):
 
     features = []
     for layer in feature_names:
-        features.append(backbone.get_layer(layer.name).output)
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
@@ -44,7 +44,7 @@ def mobilenet_backbone(x, feature_names):
 
     features = []
     for layer in feature_names:
-        features.append(backbone.get_layer(layer.name).output)
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
@@ -61,7 +61,7 @@ def mobilenetv2_backbone(x, feature_names):
 
     features = []
     for layer in feature_names:
-        features.append(backbone.get_layer(layer.name).output)
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
@@ -76,7 +76,7 @@ def vgg16_backbone(x, feature_names):
 
     features = []
     for layer in feature_names:
-        features.append(backbone.get_layer(layer.name).output)
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
