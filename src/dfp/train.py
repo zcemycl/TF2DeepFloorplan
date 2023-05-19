@@ -123,7 +123,7 @@ def main(config: argparse.Namespace):
             )
 
             # plot progress
-            if pltiter % config.saveTensorInterval == 0:
+            if pltiter % config.save_tensor_interval == 0:
                 f = image_grid(img, bound, room, logits_r, logits_cw)
                 im = plot_to_image(f)
                 with writer.as_default():
@@ -135,7 +135,7 @@ def main(config: argparse.Namespace):
             pltiter += 1
 
         # save model
-        if epoch % config.saveModelInterval == 0:
+        if epoch % config.save_model_interval == 0:
             model.save_weights(config.logdir + "/G")
             model.save(config.modeldir)
             print("[INFO] Saving Model ...")
@@ -153,8 +153,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     p.add_argument("--logdir", type=str, default="log/store")
     p.add_argument("--modeldir", type=str, default="model/store")
     p.add_argument("--weight", type=str)
-    p.add_argument("--saveTensorInterval", type=int, default=10)
-    p.add_argument("--saveModelInterval", type=int, default=20)
+    p.add_argument("--save-tensor-interval", type=int, default=10)
+    p.add_argument("--save-model-interval", type=int, default=20)
     p.add_argument("--tomlfile", type=str, default=None)
     p.add_argument(
         "--feature-channels",

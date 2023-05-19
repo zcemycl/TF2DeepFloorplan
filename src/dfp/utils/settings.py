@@ -10,5 +10,5 @@ def overwrite_args_with_toml(config: argparse.Namespace) -> argparse.Namespace:
     settings = Dynaconf(
         envvar_prefix="DYNACONF", settings_files=[config.tomlfile]
     )
-    settings = dict((k.lower(), v) for k, v in settings.as_dict().iteritems())
+    settings = dict((k.lower(), v) for k, v in settings.as_dict().items())
     return Namespace(**settings)
