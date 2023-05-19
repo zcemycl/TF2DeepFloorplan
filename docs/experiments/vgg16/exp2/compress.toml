@@ -1,0 +1,9 @@
+tfmodel = 'subclass'
+modeldir = 'model/store_vgg16_exp2'
+tflitedir = 'model/store_vgg16_exp2_model.tflite'
+quantize = 1
+compress_mode = 'quantization'
+loadmethod = 'pb'
+feature_channels = [32, 32, 32, 32]
+backbone = 'vgg16'
+feature_names = ["block1_pool", "block2_pool", "block3_pool", "block4_pool", "block5_pool",]

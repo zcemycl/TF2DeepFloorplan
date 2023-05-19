@@ -12,6 +12,7 @@ from .data import decodeAllRaw, loadDataset, preprocess
 from .net import deepfloorplanModel
 from .net_func import deepfloorplanFunc
 from .train import train_step
+from .utils.settings import overwrite_args_with_toml
 from .utils.util import (
     print_model_weight_clusters,
     print_model_weights_sparsity,
@@ -22,6 +23,8 @@ def model_init(config: argparse.Namespace) -> tf.keras.Model:
     if config.loadmethod == "log":
         if config.tfmodel == "subclass":
             base_model = deepfloorplanModel(config=config)
+            base_model.build((1, 512, 512, 3))
+            assert True, "subclass and log are not convertible to tflite."
         elif config.tfmodel == "func":
             base_model = deepfloorplanFunc(config=config)
         base_model.load_weights(config.modeldir)
@@ -96,6 +99,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
             "block5_pool",
         ],
     )
+    p.add_argument("--tomlfile", type=str, default=None)
     return p.parse_args(args)
 
 
@@ -246,11 +250,13 @@ def quantization_aware_training(config: argparse.Namespace):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    args = overwrite_args_with_toml(args)
+    print(args)
 
     if args.compress_mode == "quantization" or args.quantize:
         # quantization_aware_training(args)
         converter(args)
-    if args.tfmodel == "func":
+    elif args.tfmodel == "func":
         if args.compress_mode == "prune":
             prune(args)
         elif args.compress_mode == "cluster":

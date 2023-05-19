@@ -17,6 +17,7 @@ from .utils.rgb_ind_convertor import (
     floorplan_fuse_map,
     ind2rgb,
 )
+from .utils.settings import overwrite_args_with_toml
 from .utils.util import fill_break_line, flood_fill, refine_room_region
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
@@ -222,6 +223,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
             "block5_pool",
         ],
     )
+    p.add_argument("--tomlfile", type=str, default=None)
     return p.parse_args(args)
 
 
@@ -235,6 +237,7 @@ def deploy_plot_res(result: np.ndarray):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    args = overwrite_args_with_toml(args)
     result = main(args)
     deploy_plot_res(result)
     plt.show()

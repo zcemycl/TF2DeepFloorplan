@@ -1,0 +1,14 @@
+tfmodel = 'subclass'
+image = 'resources/30939153.jpg'
+postprocess = 1
+colorize = 1
+save = ''
+weight = 'log/store_vgg16_exp2/G'
+loadmethod = 'log'
+# weight = 'model/store_vgg16_exp2'
+# loadmethod = 'pb'
+# weight = 'model/store_vgg16_exp2_model.tflite'
+# loadmethod = 'tflite'
+feature_channels = [32, 32, 32, 32]
+backbone = 'vgg16'
+feature_names = ["block1_pool", "block2_pool", "block3_pool", "block4_pool", "block5_pool",]
