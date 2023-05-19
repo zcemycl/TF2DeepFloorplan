@@ -11,8 +11,12 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.local import LocalProxy
 
 from .deploy import main
+from .utils.settings import overwrite_args_with_toml
 
 app = Flask(__name__)
+
+args = Namespace(tomlfile="docs/app.toml")
+args = overwrite_args_with_toml(args)
 
 
 def saveStreamFile(stream: FileStorage, fnum: str):
@@ -68,6 +72,9 @@ def process_image():
     finname = "resources/30939153.jpg"
     foutname = fnum + "-out.jpg"
     output = "/tmp"
+    postprocess = parsePostprocess(request)
+    colorize = parseColorize(request)
+    output = parseOutputDir(request)
 
     # input image: either local file or uri
     if "file" in request.files:
@@ -77,15 +84,10 @@ def process_image():
             finname = fnum + ".jpg"
             print("files: ", request.files)
             print(request.files["file"])
-            args = Namespace(
-                image=finname,
-                weight="log/store/G",
-                loadmethod="log",
-                postprocess=True,
-                colorize=True,
-                tfmodel="subclass",
-                save=os.path.join(output, foutname),
-            )
+            args.image = finname
+            args.postprocess = postprocess
+            args.colorize = colorize
+            args.save = os.path.join(output, foutname)
             print(args)
 
             with mp.Pool() as pool:
@@ -121,19 +123,10 @@ def process_image():
         except Exception:
             return {"message": "input error"}, 400
 
-    postprocess = parsePostprocess(request)
-    colorize = parseColorize(request)
-    output = parseOutputDir(request)
-
-    args = Namespace(
-        image=finname,
-        weight="log/store/G",
-        loadmethod="log",
-        postprocess=postprocess,
-        colorize=colorize,
-        tfmodel="subclass",
-        save=os.path.join(output, foutname),
-    )
+    args.image = finname
+    args.postprocess = postprocess
+    args.colorize = colorize
+    args.save = os.path.join(output, foutname)
     print(args)
 
     with mp.Pool() as pool:
