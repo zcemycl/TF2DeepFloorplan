@@ -4,7 +4,7 @@ import random
 import sys
 import time
 from argparse import Namespace
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union
 
 import numpy as np
 import pygame
@@ -17,6 +17,10 @@ logging.basicConfig(level=logging.INFO)
 args = Namespace(tomlfile="docs/game.toml")
 args = overwrite_args_with_toml(args)
 finname = "resources/30939153.jpg"
+FOV = math.pi / 3
+HALF_FOV = FOV / 2
+CASTED_RAYS = 120
+STEP_ANGLE = FOV / CASTED_RAYS
 
 
 def draw_map(
@@ -74,6 +78,25 @@ def player_control(
     return angle, x, y
 
 
+def draw_player_direction(
+    x: float,
+    y: float,
+    angle: float,
+    depth: Union[float, int],
+    win: pygame.Surface,
+):
+    pygame.draw.line(
+        win,
+        (0, 255, 0),
+        (x, y),
+        (
+            x - math.sin(angle) * depth,
+            y + math.cos(angle) * depth,
+        ),
+        3,
+    )
+
+
 if __name__ == "__main__":
     args.image = finname
     start = time.time()
@@ -89,8 +112,8 @@ if __name__ == "__main__":
     SCREEN_HEIGHT = h
     SCREEN_WIDTH = w * 2
     TILE_SIZE = 1
-    FOV = math.pi / 3
-    HALF_FOV = FOV / 2
+    MAX_DEPTH = max(h, w)
+
     # pdb.set_trace()
     posy, posx = np.where(result != 10)
     posidx = random.randint(0, len(posy) - 1)
@@ -105,7 +128,6 @@ if __name__ == "__main__":
 
     clock = pygame.time.Clock()
     while True:
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -129,36 +151,13 @@ if __name__ == "__main__":
         pygame.draw.circle(win, (255, 0, 0), (player_x, player_y), 8)
 
         # draw player direction
-        pygame.draw.line(
-            win,
-            (0, 255, 0),
-            (player_x, player_y),
-            (
-                player_x - math.sin(player_angle) * 50,
-                player_y + math.cos(player_angle) * 50,
-            ),
-            3,
-        )
+        draw_player_direction(player_x, player_y, player_angle, MAX_DEPTH, win)
         # fov (left, right)
-        pygame.draw.line(
-            win,
-            (0, 255, 0),
-            (player_x, player_y),
-            (
-                player_x - math.sin(player_angle - HALF_FOV) * 50,
-                player_y + math.cos(player_angle - HALF_FOV) * 50,
-            ),
-            3,
+        draw_player_direction(
+            player_x, player_y, player_angle - HALF_FOV, MAX_DEPTH, win
         )
-        pygame.draw.line(
-            win,
-            (0, 255, 0),
-            (player_x, player_y),
-            (
-                player_x - math.sin(player_angle + HALF_FOV) * 50,
-                player_y + math.cos(player_angle + HALF_FOV) * 50,
-            ),
-            3,
+        draw_player_direction(
+            player_x, player_y, player_angle + HALF_FOV, MAX_DEPTH, win
         )
 
         pygame.display.flip()
