@@ -14,9 +14,10 @@ Depends on different applications, the following installation methods can
 |Ubuntu|GPU|Model Development|`pip install -e .[tfgpu,dev,testing,linting]`|
 |MacOS|M1 Chip|Model Development|`pip install -e .[tfmacm1,dev,testing,linting]`|
 |Ubuntu|GPU|Model Deployment API|`pip install -e .[tfgpu,api]`|
-|Ubuntu|GPU|Model Development and Deployment API|`pip install -e .[tfgpu,api,dev,testing,linting]`|
+|Ubuntu|GPU|Everything|`pip install -e .[tfgpu,api,dev,testing,linting,game]`|
 |Agnostic|...|Docker|(to be updated)|
 |Ubuntu|GPU|Notebook|`pip install -e .[tfgpu,jupyter]`|
+|Ubuntu|GPU|Game|`pip install -e .[tfgpu,game]`|
 
 ## How to run?
 1. Install packages.

@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tfcpu,api,dev,testing,linting]
+          pip install -e .[tfcpu,api,dev,testing,linting,game]
 
       - name: Test with pytest
         run: |
@@ -30,7 +30,7 @@ jobs:
       - name: Build
         run: |
           pip install setuptools sdist wheel twine
-          pip install -e .[tfcpu,api]
+          pip install -e .[tfcpu,api,game]
           python setup.py sdist bdist_wheel
 
       # - name: Publish distribution 📦 to PyPI
