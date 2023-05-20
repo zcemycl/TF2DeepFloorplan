@@ -4,6 +4,10 @@ This repo contains a basic procedure to train and deploy the DNN model suggested
 Network Architectures from the paper, <br>
 <img src="resources/dfpmodel.png" width="50%"><img src="resources/features.png" width="50%">
 
+
+### Additional feature (pygame)
+![TF2DeepFloorplan_3dviz](resources/raycast.gif)
+
 ## Requirements
 Depends on different applications, the following installation methods can
 
@@ -13,9 +17,10 @@ Depends on different applications, the following installation methods can
 |Ubuntu|GPU|Model Development|`pip install -e .[tfgpu,dev,testing,linting]`|
 |MacOS|M1 Chip|Model Development|`pip install -e .[tfmacm1,dev,testing,linting]`|
 |Ubuntu|GPU|Model Deployment API|`pip install -e .[tfgpu,api]`|
-|Ubuntu|GPU|Model Development and Deployment API|`pip install -e .[tfgpu,api,dev,testing,linting]`|
+|Ubuntu|GPU|Everything|`pip install -e .[tfgpu,api,dev,testing,linting,game]`|
 |Agnostic|...|Docker|(to be updated)|
 |Ubuntu|GPU|Notebook|`pip install -e .[tfgpu,jupyter]`|
+|Ubuntu|GPU|Game|`pip install -e .[tfgpu,game]`|
 
 ## How to run?
 1. Install packages.
@@ -83,6 +88,10 @@ python -m dfp.deploy [--image 'path/to/image']
 ```
 python -m dfp.deploy --image floorplan.jpg --weight log/store/G
 --postprocess --colorize --save output.jpg --loadmethod log
+```
+8. Play with pygame.
+```
+python -m dfp.game
 ```
 
 ## Docker for API
