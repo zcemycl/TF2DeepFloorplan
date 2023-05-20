@@ -83,16 +83,20 @@ python -m dfp.deploy --image floorplan.jpg --weight log/store/G
 docker build -t tf_docker -f Dockerfile .
 docker run -d -p 1111:1111 tf_docker:latest
 docker run --gpus all -d -p 1111:1111 tf_docker:latest
+
+# special for hot reloading flask
+docker run -v ${PWD}/src/dfp/app.py:/src/dfp/app.py -v ${PWD}/src/dfp/deploy.py:/src/dfp/deploy.py -d -p 1111:1111 tf_docker:latest
+docker logs `docker ps | grep "tf_docker:latest"  | awk '{ print $1 }'` --follow
 ```
 2. Call the api for output.
 ```
 curl -H "Content-Type: application/json" --request POST  \
-  -d '{"uri":"https://cdn.cnn.com/cnnnext/dam/assets/200212132008-04-london-rental-market-intl-exlarge-169.jpg","colorize":1,"postprocess":0, "output":"/tmp"}' \
-  http://0.0.0.0:1111/process --output /tmp/tmp.jpg
+  -d '{"uri":"https://cdn.cnn.com/cnnnext/dam/assets/200212132008-04-london-rental-market-intl-exlarge-169.jpg","colorize":1,"postprocess":0}' \
+  http://0.0.0.0:1111/uri --output /tmp/tmp.jpg
 
 
-curl --request POST -F "file=@resources/30939153.jpg;type=image/jpeg" \
-  -F "postprocess=0" -F "colorize=0" -F "output=/tmp" http://0.0.0.0:1111/process --output out.jpg
+curl --request POST -F "file=@resources/30939153.jpg" \
+  -F "postprocess=0" -F "colorize=0" http://0.0.0.0:1111/upload --output out.jpg
 ```
 3. If you run `app.py` without docker, the second curl for file upload will not work.
 

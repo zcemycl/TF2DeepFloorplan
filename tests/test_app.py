@@ -10,7 +10,6 @@ from flask.testing import FlaskClient
 from pytest_mock import MockFixture
 
 from dfp.app import app as create_app
-from dfp.app import parseColorize, parseOutputDir, parsePostprocess
 
 
 class fakeMultiprocessing:
@@ -96,7 +95,7 @@ def test_app_home(client: FlaskClient):
 def test_app_mock_process_empty(client: FlaskClient):
     headers: Dict[Any, Any] = {}
     data: Dict[Any, Any] = {}
-    resp = client.post("/process", headers=headers, json=data)
+    resp = client.post("/uri", headers=headers, json=data)
     assert resp.status_code == 200
     assert resp.json.get("message", "success!")
 
@@ -109,7 +108,7 @@ def test_app_mock_process_uri(client: FlaskClient):
         "colorize": 1,
         "output": "/tmp",
     }
-    resp = client.post("/process", headers=headers, json=data)
+    resp = client.post("/uri", headers=headers, json=data)
     os.system("rm *.jpg")
     assert resp.status_code == 200
     assert resp.json.get("message", "success!")
@@ -120,21 +119,3 @@ def test_app_mock_process_uri(client: FlaskClient):
 #     resp = client.post("/process", data=files)
 #     os.system("rm *.jpg")
 #     assert resp.status_code == 400
-
-
-def test_app_parsePostprocess():
-    req = fakeRequest()
-    postprocess = parsePostprocess(req)
-    assert postprocess is False
-
-
-def test_app_parseColorize():
-    req = fakeRequest()
-    colorize = parseColorize(req)
-    assert colorize is False
-
-
-def test_app_parseOutputDir():
-    req = fakeRequest()
-    output = parseOutputDir(req)
-    assert output == "/tmp"

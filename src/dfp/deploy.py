@@ -37,12 +37,14 @@ def init(
     elif config.loadmethod == "tflite":
         model = tf.lite.Interpreter(model_path=config.weight)
         model.allocate_tensors()
-    img = mpimg.imread(config.image)
+    img = mpimg.imread(config.image)[:, :, :3]
     shp = img.shape
     img = tf.convert_to_tensor(img, dtype=tf.uint8)
     img = tf.image.resize(img, [512, 512])
     img = tf.cast(img, dtype=tf.float32)
-    img = tf.reshape(img, [-1, 512, 512, 3]) / 255
+    img = tf.reshape(img, [-1, 512, 512, 3])
+    if tf.math.reduce_max(img) > 1.0:
+        img /= 255
     if config.loadmethod == "tflite":
         return model, img, shp
     model.trainable = False

@@ -8,15 +8,17 @@ import numpy as np
 import requests
 from flask import Flask, request, send_file
 from werkzeug.datastructures import FileStorage
-from werkzeug.local import LocalProxy
 
 from .deploy import main
 from .utils.settings import overwrite_args_with_toml
 
 app = Flask(__name__)
+app.config["UPLOAD_EXTENSIONS"] = [".jpg", ".png", ".gif"]
 
 args = Namespace(tomlfile="docs/app.toml")
 args = overwrite_args_with_toml(args)
+finname = "resources/30939153.jpg"
+output = "/tmp"
 
 
 def saveStreamFile(stream: FileStorage, fnum: str):
@@ -28,93 +30,76 @@ def saveStreamURI(stream: bytes, fnum: str):
         handler.write(stream)
 
 
-def parsePostprocess(request: LocalProxy) -> bool:
-    postprocess = True
-    # postprocess
-    if "postprocess" in request.form.keys():
-        postprocess = bool(int(request.form.getlist("postprocess")[0]))
-
-    if request.json and "postprocess" in request.json.keys():
-        postprocess = bool(request.json["postprocess"])
-    return postprocess
-
-
-def parseColorize(request: LocalProxy) -> bool:
-    colorize = True
-    # colorize
-    if "colorize" in request.form.keys():
-        colorize = bool(int(request.form.getlist("colorize")[0]))
-
-    if request.json and "colorize" in request.json.keys():
-        colorize = bool(request.json["colorize"])
-    return colorize
-
-
-def parseOutputDir(request: LocalProxy) -> str:
-    output = "/tmp"
-    # output path
-    if "output" in request.form.keys():
-        output = str(request.form.getlist("output")[0]).strip()
-
-    if request.json and "output" in request.json.keys():
-        output = str(request.json["output"])
-    return output
-
-
 @app.route("/")
 def home():
     return {"message": "Hello Flask!"}
 
 
-@app.route("/process", methods=["POST"])
+@app.route("/upload", methods=["POST"])
+def dummy():
+    finname = "resources/30939153.jpg"
+    fnum = str(random.randint(0, 10000))
+    foutname = fnum + "-out.jpg"
+    if "file" in request.files:
+        saveStreamFile(request.files["file"], fnum)
+        finname = fnum + ".jpg"
+
+    postprocess = (
+        False
+        if "postprocess" not in request.form.keys()
+        else bool(int(request.form.getlist("postprocess")[0]))
+    )
+    colorize = (
+        False
+        if "colorize" not in request.form.keys()
+        else bool(int(request.form.getlist("colorize")[0]))
+    )
+
+    args.image = finname
+    args.postprocess = postprocess
+    args.colorize = colorize
+    args.save = os.path.join(output, foutname)
+    app.logger.info(args)
+    with mp.Pool() as pool:
+        result = pool.map(main, [args])[0]
+
+    app.logger.info(f"Output Image shape: {np.array(result).shape}")
+    if args.save:
+        mpimg.imsave(args.save, np.array(result).astype(np.uint8))
+
+    try:
+        callback = send_file(
+            os.path.join(output, foutname), mimetype="image/jpg"
+        )
+        return callback, 200
+    except Exception:
+        return {"message": "send error"}, 400
+    finally:
+        os.system("rm " + os.path.join(output, foutname))
+        if finname != "resources/30939153.jpg":
+            os.system("rm " + finname)
+    return {"message": "hello"}
+
+
+@app.route("/uri", methods=["POST"])
 def process_image():
     fnum = str(random.randint(0, 10000))
     finname = "resources/30939153.jpg"
     foutname = fnum + "-out.jpg"
-    output = "/tmp"
-    postprocess = parsePostprocess(request)
-    colorize = parseColorize(request)
-    output = parseOutputDir(request)
+    postprocess = (
+        bool(request.json["postprocess"])
+        if request.json and "postprocess" in request.json.keys()
+        else False
+    )
+    colorize = (
+        bool(request.json["colorize"])
+        if request.json and "colorize" in request.json.keys()
+        else False
+    )
 
-    # input image: either local file or uri
-    if "file" in request.files:
-        print("File mode...")
-        try:
-            saveStreamFile(request.files["file"], fnum)
-            finname = fnum + ".jpg"
-            print("files: ", request.files)
-            print(request.files["file"])
-            args.image = finname
-            args.postprocess = postprocess
-            args.colorize = colorize
-            args.save = os.path.join(output, foutname)
-            print(args)
-
-            with mp.Pool() as pool:
-                result = pool.map(main, [args])[0]
-
-            print("Output Image shape: ", np.array(result).shape)
-
-            if args.save:
-                mpimg.imsave(args.save, np.array(result).astype(np.uint8))
-
-            try:
-                callback = send_file(
-                    os.path.join(output, foutname), mimetype="image/jpg"
-                )
-                return callback, 200
-            except Exception:
-                return {"message": "send error"}, 400
-            finally:
-                os.system("rm " + os.path.join(output, foutname))
-                if finname != "resources/30939153.jpg":
-                    os.system("rm " + finname)
-
-        except Exception:
-            return {"message": "input error"}, 400
-
+    # input image: uri
     if request.json and "uri" in request.json.keys():
-        print("URI mode...")
+        app.logger.info("URI mode...")
         uri = request.json["uri"]
         try:
             data = requests.get(uri).content
@@ -127,12 +112,12 @@ def process_image():
     args.postprocess = postprocess
     args.colorize = colorize
     args.save = os.path.join(output, foutname)
-    print(args)
+    app.logger.info(args)
 
     with mp.Pool() as pool:
         result = pool.map(main, [args])[0]
 
-    print("Output Image shape: ", np.array(result).shape)
+    app.logger.info(f"Output Image shape: {np.array(result).shape}")
 
     if args.save:
         mpimg.imsave(args.save, np.array(result).astype(np.uint8))
