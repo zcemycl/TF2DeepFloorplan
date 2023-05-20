@@ -1,9 +1,12 @@
-# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) ![example workflow](https://github.com/zcemycl/TF2DeepFloorplan/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/zcemycl/TF2DeepFloorplan/badge.svg?branch=main)](https://coveralls.io/github/zcemycl/TF2DeepFloorplan?branch=main)
-<!-- [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzcemycl%2FTF2DeepFloorplan&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com) -->
+# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) ![example workflow](https://github.com/zcemycl/TF2DeepFloorplan/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/zcemycl/TF2DeepFloorplan/badge.svg?branch=main)](https://coveralls.io/github/zcemycl/TF2DeepFloorplan?branch=main)[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzcemycl%2FTF2DeepFloorplan&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 This repo contains a basic procedure to train and deploy the DNN model suggested by the paper ['Deep Floor Plan Recognition using a Multi-task Network with Room-boundary-Guided Attention'](https://arxiv.org/abs/1908.11025). It rewrites the original codes from [zlzeng/DeepFloorplan](https://github.com/zlzeng/DeepFloorplan) into newer versions of Tensorflow and Python.
 <br>
 Network Architectures from the paper, <br>
 <img src="resources/dfpmodel.png" width="50%"><img src="resources/features.png" width="50%">
+
+
+### Additional feature (pygame)
+![TF2DeepFloorplan_3dviz](resources/raycast.gif)
 
 ## Requirements
 Depends on different applications, the following installation methods can
@@ -85,6 +88,10 @@ python -m dfp.deploy [--image 'path/to/image']
 ```
 python -m dfp.deploy --image floorplan.jpg --weight log/store/G
 --postprocess --colorize --save output.jpg --loadmethod log
+```
+8. Play with pygame.
+```
+python -m dfp.game
 ```
 
 ## Docker for API

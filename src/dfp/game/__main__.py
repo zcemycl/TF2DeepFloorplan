@@ -17,14 +17,9 @@ logging.basicConfig(level=logging.INFO)
 
 args = Namespace(tomlfile="docs/game.toml")
 args = overwrite_args_with_toml(args)
-# finname = "resources/30939153.jpg"
-finname = "resources/example4.png"
-# finname = "resources/example5.jpg"
-# finname = "resources/123.jpg"
 FOV = math.pi / 3
 HALF_FOV = FOV / 2
-CASTED_RAYS = 150
-STEP_ANGLE = FOV / CASTED_RAYS
+STEP_ANGLE = FOV / args.casted_rays
 
 
 def draw_dfp(map: np.ndarray, win: pygame.Surface):
@@ -171,7 +166,6 @@ def foo(x, y, angle, depth, w, h, binary_map, STEP_ANGLE, CASTED_RAYS):
 
 
 if __name__ == "__main__":
-    args.image = finname
     start = time.time()
     result = main(args)
     end = time.time()
@@ -188,7 +182,7 @@ if __name__ == "__main__":
     SCREEN_WIDTH = w * 2
     TILE_SIZE = 1
     MAX_DEPTH = max(h, w)
-    SCALE = (SCREEN_WIDTH / 2) / CASTED_RAYS
+    SCALE = (SCREEN_WIDTH / 2) / args.casted_rays
 
     # pdb.set_trace()
     posy, posx = np.where(result != 1)
@@ -239,7 +233,7 @@ if __name__ == "__main__":
             h,
             result,
             STEP_ANGLE,
-            CASTED_RAYS,
+            args.casted_rays,
         )
 
         for idx, (angle, fdist, iswall) in enumerate(wallangles):

@@ -1,5 +1,8 @@
 tfmodel = 'subclass'
-image = ''
+# image = 'resources/123.jpg'
+# image = 'resources/example4.png'
+image = 'resources/example5.jpg'
+CASTED_RAYS = 150
 postprocess = 1
 colorize = 0
 save = ''
