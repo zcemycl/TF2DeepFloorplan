@@ -32,7 +32,7 @@ jobs:
           pip install setuptools sdist wheel twine
           pip install -e .[tfcpu,api]
           python setup.py sdist bdist_wheel
-
+          
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
