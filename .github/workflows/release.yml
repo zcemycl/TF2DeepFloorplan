@@ -20,22 +20,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[testing]
-          pip install matplotlib numpy opencv-python pdbpp tensorboard tensorflow-cpu scipy Pillow gdown isort black flake8
-          pip install mypy types-requests pytype pytest pytest-cov pre-commit pytest-mock pytest-flask
+          pip install -e .[tfcpu,api,dev,testing,linting]
 
       - name: Test with pytest
         run: |
           pip install python-coveralls
-          python -m pytest --cov=./dfp --cov-report term-missing
-          pip install coveragepy-lcov
-          coveragepy-lcov --data_file_path .coverage --output_file_path lcov.info
+          python -m pytest --cov=./dfp --cov-report lcov:lcov.info
 
       - name: Build
         run: |
-          pip install setuptools sdist wheel twine
-          pip install -r requirements.txt
-          python setup.py sdist bdist_wheel
+          python -m pip install --upgrade pip
+          pip install -e .[tfcpu,api]
+
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -43,6 +39,7 @@ jobs:
           files: |
             ./dist/*tar.gz
             ./dist/*.whl
+
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
