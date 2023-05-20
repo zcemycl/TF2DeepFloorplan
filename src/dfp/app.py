@@ -13,7 +13,7 @@ from .deploy import main
 from .utils.settings import overwrite_args_with_toml
 
 app = Flask(__name__)
-app.config["UPLOAD_EXTENSIONS"] = [".jpg", ".png", ".gif"]
+app.config["UPLOAD_EXTENSIONS"] = [".jpg", ".png", ".jpeg"]
 
 args = Namespace(tomlfile="docs/app.toml")
 args = overwrite_args_with_toml(args)
