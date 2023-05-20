@@ -152,27 +152,27 @@ git branch -d xx-features
 ## Optimization
 - Backbone Comparison in Size
 
-|Backbone|log|pb|tflite|
-|---|---|---|---|
-|VGG16|130.5Mb|119Mb|45.3Mb|
-|MobileNetV1|102.1Mb|86.7Mb|50.2Mb|
-|MobileNetV2|129.3Mb|94.4Mb|57.9Mb|
-|ResNet50|214Mb|216Mb|107.2Mb|
+|Backbone|log|pb|tflite|toml|
+|---|---|---|---|---|
+|VGG16|130.5Mb|119Mb|45.3Mb|[link](docs/experiments/vgg16/exp1)|
+|MobileNetV1|102.1Mb|86.7Mb|50.2Mb|[link](docs/experiments/mobilenetv1/exp1)|
+|MobileNetV2|129.3Mb|94.4Mb|57.9Mb|[link](docs/experiments/mobilenetv2/exp1)|
+|ResNet50|214Mb|216Mb|107.2Mb|[link](docs/experiments/resnet50/exp1)|
 
 - Feature Selection Comparison in Size
 
-|Backbone|Feature Names|log|pb|tflite|
-|---|---|---|---|---|
-|MobileNetV1|"conv_pw_1_relu", <br>"conv_pw_3_relu", <br>"conv_pw_5_relu", <br>"conv_pw_7_relu", <br>"conv_pw_13_relu"|102.1Mb|86.7Mb|50.2Mb|
-|MobileNetV1|"conv_pw_1_relu", <br>"conv_pw_3_relu", <br>"conv_pw_5_relu", <br>"conv_pw_7_relu", <br>"conv_pw_12_relu"|84.5Mb|82.3Mb|49.2Mb|
+|Backbone|Feature Names|log|pb|tflite|toml|
+|---|---|---|---|---|---|
+|MobileNetV1|"conv_pw_1_relu", <br>"conv_pw_3_relu", <br>"conv_pw_5_relu", <br>"conv_pw_7_relu", <br>"conv_pw_13_relu"|102.1Mb|86.7Mb|50.2Mb|[link](docs/experiments/mobilenetv1/exp1)|
+|MobileNetV1|"conv_pw_1_relu", <br>"conv_pw_3_relu", <br>"conv_pw_5_relu", <br>"conv_pw_7_relu", <br>"conv_pw_12_relu"|84.5Mb|82.3Mb|49.2Mb|[link](docs/experiments/mobilenetv1/exp2)|
 
 - Feature Channels Comparison in Size
 
-|Backbone|Channels|log|pb|tflite|
-|---|---|---|---|---|
-|VGG16|[256,128,64,32]|130.5Mb|119Mb|45.3Mb|
-|VGG16|[128,64,32,16]|82.4Mb|81.6Mb|27.3Mb|
-|VGG16|[32,32,32,32]|73.2Mb|67.5Mb|18.1Mb|
+|Backbone|Channels|log|pb|tflite|toml|
+|---|---|---|---|---|---|
+|VGG16|[256,128,64,32]|130.5Mb|119Mb|45.3Mb|[link](docs/experiments/vgg16/exp1)|
+|VGG16|[128,64,32,16]|82.4Mb|81.6Mb|27.3Mb||
+|VGG16|[32,32,32,32]|73.2Mb|67.5Mb|18.1Mb|[link](docs/experiments/vgg16/exp2)|
 
 - tfmot
   - Pruning (not working)
