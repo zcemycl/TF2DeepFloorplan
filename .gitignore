@@ -146,3 +146,4 @@ model/
 cov.info
 lcov.info
 *.h5
+out.jpg
