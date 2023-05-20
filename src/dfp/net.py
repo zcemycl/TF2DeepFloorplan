@@ -68,10 +68,23 @@ def up_bilinear(dim: int) -> tf.keras.Sequential:
 class deepfloorplanModel(Model):
     def __init__(self, config: argparse.Namespace = None):
         super(deepfloorplanModel, self).__init__()
+        self.config = config
+        dimlist = [256, 128, 64, 32]
+        self.feature_names = [
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ]
+        if config is not None:
+            dimlist = config.feature_channels
+            assert (
+                config.backbone == "vgg16"
+            ), "subclass backbone must be vgg16"
+            self.feature_names = config.feature_names
         self._vgg16init()
         # room boundary prediction (rbp)
-        # dimlist = [256, 128, 64, 32]
-        dimlist = [32, 32, 32, 32]
         self.rbpups = [upconv2d(dim=d, act="linear") for d in dimlist]
         self.rbpcv1 = [conv2d(dim=d, act="linear") for d in dimlist]
         self.rbpcv2 = [conv2d(dim=d) for d in dimlist]
@@ -220,7 +233,7 @@ class deepfloorplanModel(Model):
         feature = x
         for layer in self.vgg16.layers:
             feature = layer(feature)
-            if layer.name.find("pool") != -1:
+            if layer.name in self.feature_names:
                 features.append(feature)
         x = feature
         features = features[::-1]

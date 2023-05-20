@@ -9,8 +9,10 @@ import tensorflow_model_optimization as tfmot
 from tqdm import tqdm
 
 from .data import decodeAllRaw, loadDataset, preprocess
+from .net import deepfloorplanModel
 from .net_func import deepfloorplanFunc
 from .train import train_step
+from .utils.settings import overwrite_args_with_toml
 from .utils.util import (
     print_model_weight_clusters,
     print_model_weights_sparsity,
@@ -19,7 +21,12 @@ from .utils.util import (
 
 def model_init(config: argparse.Namespace) -> tf.keras.Model:
     if config.loadmethod == "log":
-        base_model = deepfloorplanFunc()
+        if config.tfmodel == "subclass":
+            base_model = deepfloorplanModel(config=config)
+            base_model.build((1, 512, 512, 3))
+            assert True, "subclass and log are not convertible to tflite."
+        elif config.tfmodel == "func":
+            base_model = deepfloorplanFunc(config=config)
         base_model.load_weights(config.modeldir)
     elif config.loadmethod == "pb":
         base_model = tf.keras.models.load_model(config.modeldir)
@@ -64,8 +71,35 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         "--loadmethod",
         type=str,
         default="log",
-        choices=["log", "tflite", "pb", "none"],
+        choices=["log", "pb", "none"],
     )  # log,tflite,pb
+    p.add_argument(
+        "--feature-channels",
+        type=int,
+        action="store",
+        default=[256, 128, 64, 32],
+        nargs=4,
+    )
+    p.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet50", "mobilenetv1", "mobilenetv2"],
+    )
+    p.add_argument(
+        "--feature-names",
+        type=str,
+        action="store",
+        nargs=5,
+        default=[
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ],
+    )
+    p.add_argument("--tomlfile", type=str, default=None)
     return p.parse_args(args)
 
 
@@ -216,11 +250,13 @@ def quantization_aware_training(config: argparse.Namespace):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    args = overwrite_args_with_toml(args)
+    print(args)
 
     if args.compress_mode == "quantization" or args.quantize:
         # quantization_aware_training(args)
         converter(args)
-    if args.tfmodel == "func":
+    elif args.tfmodel == "func":
         if args.compress_mode == "prune":
             prune(args)
         elif args.compress_mode == "cluster":
