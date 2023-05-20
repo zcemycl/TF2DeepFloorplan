@@ -1,5 +1,4 @@
-# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) ![example workflow](https://github.com/zcemycl/TF2DeepFloorplan/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/zcemycl/TF2DeepFloorplan/badge.svg?branch=main)](https://coveralls.io/github/zcemycl/TF2DeepFloorplan?branch=main)
-<!-- [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzcemycl%2FTF2DeepFloorplan&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com) -->
+# TF2DeepFloorplan [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [<img src="https://colab.research.google.com/assets/colab-badge.svg" >](https://colab.research.google.com/github/zcemycl/TF2DeepFloorplan/blob/master/deepfloorplan.ipynb) ![example workflow](https://github.com/zcemycl/TF2DeepFloorplan/actions/workflows/main.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/zcemycl/TF2DeepFloorplan/badge.svg?branch=main)](https://coveralls.io/github/zcemycl/TF2DeepFloorplan?branch=main)[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzcemycl%2FTF2DeepFloorplan&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 This repo contains a basic procedure to train and deploy the DNN model suggested by the paper ['Deep Floor Plan Recognition using a Multi-task Network with Room-boundary-Guided Attention'](https://arxiv.org/abs/1908.11025). It rewrites the original codes from [zlzeng/DeepFloorplan](https://github.com/zlzeng/DeepFloorplan) into newer versions of Tensorflow and Python.
 <br>
 Network Architectures from the paper, <br>
@@ -36,8 +35,10 @@ pip install -e .[tfgpu,api,dev,testing,linting]
 ```
 python -m dfp.train [--batchsize 2][--lr 1e-4][--epochs 1000]
 [--logdir 'log/store'][--modeldir 'model/store']
-[--saveTensorInterval 10][--saveModelInterval 20]
-[--tfmodel 'subclass'/'func']
+[--save-tensor-interval 10][--save-model-interval 20]
+[--tfmodel 'subclass'/'func'][--feature-channels 256 128 64 32]
+[--backbone 'vgg16'/'mobilenetv1'/'mobilenetv2'/'resnet50']
+[--feature-names block1_pool block2_pool block3_pool block4_pool block5_pool]
 ```
 - for example,
 ```
@@ -52,7 +53,11 @@ tensorboard --logdir=log/store
 ```
 python -m dfp.convert2tflite [--modeldir model/store]
 [--tflitedir model/store/model.tflite]
-[--quantize]
+[--loadmethod 'log'/'none'/'pb']
+[--quantize][--tfmodel 'subclass'/'func']
+[--feature-channels 256 128 64 32]
+[--backbone 'vgg16'/'mobilenetv1'/'mobilenetv2'/'resnet50']
+[--feature-names block1_pool block2_pool block3_pool block4_pool block5_pool]
 ```
 6. Download and unzip model from google drive,
 ```
@@ -70,6 +75,9 @@ python -m dfp.deploy [--image 'path/to/image']
 [--loadmethod 'log'/'pb'/'tflite']
 [--weight 'log/store/G'/'model/store'/'model/store/model.tflite']
 [--tfmodel 'subclass'/'func']
+[--feature-channels 256 128 64 32]
+[--backbone 'vgg16'/'mobilenetv1'/'mobilenetv2'/'resnet50']
+[--feature-names block1_pool block2_pool block3_pool block4_pool block5_pool]
 ```
 - for example,
 ```

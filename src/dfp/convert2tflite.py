@@ -71,7 +71,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         "--loadmethod",
         type=str,
         default="log",
-        choices=["log", "tflite", "pb", "none"],
+        choices=["log", "pb", "none"],
     )  # log,tflite,pb
     p.add_argument(
         "--feature-channels",
