@@ -8,6 +8,7 @@ from typing import Dict, Tuple, Union
 
 import numpy as np
 import pygame
+from numba import jit, njit
 
 from ..deploy import main
 from ..utils.settings import overwrite_args_with_toml
@@ -57,25 +58,103 @@ def show_fps(win: pygame.Surface, clock: pygame.time.Clock):
 
 
 def player_control(
-    keys: Dict[int, bool], angle: float, x: float, y: float
+    keys: Dict[int, bool],
+    angle: float,
+    x: float,
+    y: float,
+    w: int,
+    h: int,
+    binary_map: np.ndarray,
 ) -> Tuple[float, float, float]:
+    dangle = 0.01
+    dpos = 1
+    origx, origy = x, y
     if keys[pygame.K_LEFT]:
-        angle -= 0.01
+        angle -= dangle
     if keys[pygame.K_RIGHT]:
-        angle += 0.01
+        angle += dangle
     if keys[pygame.K_w]:
-        x -= math.sin(angle) * 0.1
-        y += math.cos(angle) * 0.1
+        x -= math.sin(angle) * dpos
+        y += math.cos(angle) * dpos
     if keys[pygame.K_s]:
-        x += math.sin(angle) * 0.1
-        y -= math.cos(angle) * 0.1
+        x += math.sin(angle) * dpos
+        y -= math.cos(angle) * dpos
     if keys[pygame.K_d]:
-        x += math.sin(angle - math.pi / 2) * 0.1
-        y -= math.cos(angle - math.pi / 2) * 0.1
+        x += math.sin(angle - math.pi / 2) * dpos
+        y -= math.cos(angle - math.pi / 2) * dpos
     if keys[pygame.K_a]:
-        x -= math.sin(angle - math.pi / 2) * 0.1
-        y += math.cos(angle - math.pi / 2) * 0.1
+        x -= math.sin(angle - math.pi / 2) * dpos
+        y += math.cos(angle - math.pi / 2) * dpos
+    if keys[pygame.K_q]:
+        pygame.quit()
+        sys.exit(0)
+    if x < 0:
+        x = 0
+    if x >= w:
+        x = w - 1
+    if y < 0:
+        y = 0
+    if y >= h:
+        y = h - 1
+    if binary_map[int(y), int(x)] == 1:
+        return angle, origx, origy
     return angle, x, y
+
+
+@njit
+def ray_cast_dda(
+    x: float,
+    y: float,
+    angle: float,
+    depth: Union[float, int],
+    w: int,
+    h: int,
+    binary_map: np.ndarray,
+) -> Tuple[float, float, bool]:
+    vPlayer = np.array([x, y])
+    vRayStart = vPlayer.copy()
+    vMouseCell = np.array(
+        [x - math.sin(angle) * depth, y + math.cos(angle) * depth]
+    )
+    vRayDir = (vMouseCell - vPlayer) / np.linalg.norm((vMouseCell - vPlayer))
+    vRayUnitStepSize = np.array(
+        [
+            np.sqrt(1 + (vRayDir[1] / (vRayDir[0] + 1e-6)) ** 2),
+            np.sqrt(1 + (vRayDir[0] / (vRayDir[1] + 1e-6)) ** 2),
+        ]
+    )
+    vMapCheck = vRayStart.copy()
+    vRayLength1D = np.array([0, 0])
+    vStep = np.array([0, 0])
+
+    for i in range(2):
+        vStep[i] = -1 if vRayDir[i] < 0 else 1
+        vRayLength1D[i] = (
+            (vRayStart[i] - vMapCheck[i]) * vRayUnitStepSize[i]
+            if vRayDir[i] < 0
+            else ((vMapCheck[i] + 1) - vRayStart[i]) * vRayUnitStepSize[i]
+        )
+
+    bTileFound = False
+    fMaxDistance = depth
+    fDistance = 0
+    while not bTileFound and fDistance < fMaxDistance:
+        if vRayLength1D[0] < vRayLength1D[1]:
+            vMapCheck[0] += vStep[0]
+            fDistance = vRayLength1D[0]
+            vRayLength1D[0] += vRayUnitStepSize[0]
+        else:
+            vMapCheck[1] += vStep[1]
+            fDistance = vRayLength1D[1]
+            vRayLength1D[1] += vRayUnitStepSize[1]
+
+        if 0 <= vMapCheck[0] < w and 0 <= vMapCheck[1] < h:
+            if binary_map[int(vMapCheck[1]), int(vMapCheck[0])] == 1:
+                bTileFound = True
+        else:
+            break
+
+    return angle, fDistance, bTileFound
 
 
 def draw_player_direction(
@@ -97,6 +176,14 @@ def draw_player_direction(
     )
 
 
+@jit(nopython=True)
+def foo(x, y, angle, depth, w, h, binary_map, STEP_ANGLE, CASTED_RAYS):
+    return [
+        ray_cast_dda(x, y, angle + i * STEP_ANGLE, depth, w, h, binary_map)
+        for i in range(CASTED_RAYS)
+    ]
+
+
 if __name__ == "__main__":
     args.image = finname
     start = time.time()
@@ -108,11 +195,14 @@ if __name__ == "__main__":
     bg = rgb_im = np.zeros((h, w, 3))
     bg[result != 10] = [200, 200, 200]
     bg[result == 10] = [100, 100, 100]
+    result[result != 10] = 0
+    result[result == 10] = 1
     bg = np.transpose(bg, (1, 0, 2))
     SCREEN_HEIGHT = h
     SCREEN_WIDTH = w * 2
     TILE_SIZE = 1
-    MAX_DEPTH = max(h, w)
+    MAX_DEPTH = min(h, w) // 2
+    SCALE = (SCREEN_WIDTH / 2) / CASTED_RAYS
 
     # pdb.set_trace()
     posy, posx = np.where(result != 10)
@@ -133,13 +223,16 @@ if __name__ == "__main__":
                 pygame.quit()
                 sys.exit(0)
 
+        # 3d
+        pygame.draw.rect(win, (100, 100, 100), (w, h / 2, w, h))
+        pygame.draw.rect(win, (0, 150, 200), (w, -h / 2, w, h))
+
         keys = pygame.key.get_pressed()
         # control
         player_angle, player_x, player_y = player_control(
-            keys, player_angle, player_x, player_y
+            keys, player_angle, player_x, player_y, w, h, result
         )
 
-        # if keys[pygame.K_a]: player_
         # draw_map(result, win, TILE_SIZE, TILE_SIZE)
         # draw floorplan
         draw_dfp(bg, win)
@@ -150,16 +243,34 @@ if __name__ == "__main__":
         # draw player
         pygame.draw.circle(win, (255, 0, 0), (player_x, player_y), 8)
 
-        # draw player direction
-        draw_player_direction(player_x, player_y, player_angle, MAX_DEPTH, win)
-        # fov (left, right)
-        draw_player_direction(
-            player_x, player_y, player_angle - HALF_FOV, MAX_DEPTH, win
-        )
-        draw_player_direction(
-            player_x, player_y, player_angle + HALF_FOV, MAX_DEPTH, win
+        # # draw player direction
+        wallangles = foo(
+            player_x,
+            player_y,
+            player_angle - HALF_FOV,
+            MAX_DEPTH,
+            w,
+            h,
+            result,
+            STEP_ANGLE,
+            CASTED_RAYS,
         )
 
+        for idx, (angle, fdist, iswall) in enumerate(wallangles):
+            draw_player_direction(player_x, player_y, angle, fdist, win)
+            wall_height = 21000 / (fdist + 0.00001)
+
+            if iswall:
+                pygame.draw.rect(
+                    win,
+                    (255, 255, 255),
+                    (
+                        int(w + idx * SCALE),
+                        int((h / 2) - wall_height / 2),
+                        int(SCALE),
+                        int(wall_height),
+                    ),
+                )
         pygame.display.flip()
 
         clock.tick()
