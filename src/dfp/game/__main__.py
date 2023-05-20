@@ -20,29 +20,8 @@ args = overwrite_args_with_toml(args)
 finname = "resources/30939153.jpg"
 FOV = math.pi / 3
 HALF_FOV = FOV / 2
-CASTED_RAYS = 120
+CASTED_RAYS = 150
 STEP_ANGLE = FOV / CASTED_RAYS
-
-
-def draw_map(
-    map: np.ndarray, win: pygame.Surface, tile_size_w: int, tile_size_h: int
-) -> None:
-    h, w = map.shape
-    for row in range(h):
-        for col in range(w):
-            color = (
-                (100, 100, 100) if map[row, col] == 1.0 else (200, 200, 200)
-            )
-            pygame.draw.rect(
-                win,
-                color,
-                (
-                    col * tile_size_w,
-                    row * tile_size_h,
-                    tile_size_w,
-                    tile_size_h,
-                ),
-            )
 
 
 def draw_dfp(map: np.ndarray, win: pygame.Surface):
@@ -101,6 +80,25 @@ def player_control(
     return angle, x, y
 
 
+def draw_player_direction(
+    x: float,
+    y: float,
+    angle: float,
+    depth: Union[float, int],
+    win: pygame.Surface,
+):
+    pygame.draw.line(
+        win,
+        (0, 255, 0),
+        (x, y),
+        (
+            x - math.sin(angle) * depth,
+            y + math.cos(angle) * depth,
+        ),
+        3,
+    )
+
+
 @njit
 def ray_cast_dda(
     x: float,
@@ -119,21 +117,22 @@ def ray_cast_dda(
     vRayDir = (vMouseCell - vPlayer) / np.linalg.norm((vMouseCell - vPlayer))
     vRayUnitStepSize = np.array(
         [
-            np.sqrt(1 + (vRayDir[1] / (vRayDir[0] + 1e-6)) ** 2),
-            np.sqrt(1 + (vRayDir[0] / (vRayDir[1] + 1e-6)) ** 2),
+            np.sqrt(1 + (vRayDir[1] / (vRayDir[0] + 1e-10)) ** 2),
+            np.sqrt(1 + (vRayDir[0] / (vRayDir[1] + 1e-10)) ** 2),
         ]
     )
     vMapCheck = vRayStart.copy()
-    vRayLength1D = np.array([0, 0])
+    vRayLength1D = np.array([0.0, 0.0])
     vStep = np.array([0, 0])
 
     for i in range(2):
         vStep[i] = -1 if vRayDir[i] < 0 else 1
-        vRayLength1D[i] = (
-            (vRayStart[i] - vMapCheck[i]) * vRayUnitStepSize[i]
-            if vRayDir[i] < 0
-            else ((vMapCheck[i] + 1) - vRayStart[i]) * vRayUnitStepSize[i]
-        )
+        # vRayLength1D[i] = vRayUnitStepSize[i]
+        # vRayLength1D[i] = (
+        #     (vRayStart[i] - vMapCheck[i]) * vRayUnitStepSize[i]
+        #     if vRayDir[i] < 0
+        #     else ((vMapCheck[i] + 1) - vRayStart[i]) * vRayUnitStepSize[i]
+        # )
 
     bTileFound = False
     fMaxDistance = depth
@@ -143,10 +142,13 @@ def ray_cast_dda(
             vMapCheck[0] += vStep[0]
             fDistance = vRayLength1D[0]
             vRayLength1D[0] += vRayUnitStepSize[0]
-        else:
+        elif vRayLength1D[0] > vRayLength1D[1]:
             vMapCheck[1] += vStep[1]
             fDistance = vRayLength1D[1]
             vRayLength1D[1] += vRayUnitStepSize[1]
+        elif vRayLength1D[0] == vRayLength1D[1]:
+            vMapCheck += vStep
+            vRayLength1D += vRayUnitStepSize
 
         if 0 <= vMapCheck[0] < w and 0 <= vMapCheck[1] < h:
             if binary_map[int(vMapCheck[1]), int(vMapCheck[0])] == 1:
@@ -155,25 +157,6 @@ def ray_cast_dda(
             break
 
     return angle, fDistance, bTileFound
-
-
-def draw_player_direction(
-    x: float,
-    y: float,
-    angle: float,
-    depth: Union[float, int],
-    win: pygame.Surface,
-):
-    pygame.draw.line(
-        win,
-        (0, 255, 0),
-        (x, y),
-        (
-            x - math.sin(angle) * depth,
-            y + math.cos(angle) * depth,
-        ),
-        3,
-    )
 
 
 @jit(nopython=True)
@@ -201,15 +184,15 @@ if __name__ == "__main__":
     SCREEN_HEIGHT = h
     SCREEN_WIDTH = w * 2
     TILE_SIZE = 1
-    MAX_DEPTH = min(h, w) // 2
+    MAX_DEPTH = max(h, w)
     SCALE = (SCREEN_WIDTH / 2) / CASTED_RAYS
 
     # pdb.set_trace()
-    posy, posx = np.where(result != 10)
+    posy, posx = np.where(result != 1)
     posidx = random.randint(0, len(posy) - 1)
     player_x, player_y = posx[posidx], posy[posidx]
     player_angle = math.pi
-    # print()
+    start_angle = math.pi
     # deploy_plot_res(result)
     # plt.show()
     pygame.init()
@@ -258,17 +241,20 @@ if __name__ == "__main__":
 
         for idx, (angle, fdist, iswall) in enumerate(wallangles):
             draw_player_direction(player_x, player_y, angle, fdist, win)
+            wall_color = int(255 * (1 - (3 * fdist / MAX_DEPTH) ** 2))
+            wall_color = max(min(wall_color, 255), 30)
+            fdist *= math.cos(player_angle - angle)
             wall_height = 21000 / (fdist + 0.00001)
 
             if iswall:
                 pygame.draw.rect(
                     win,
-                    (255, 255, 255),
+                    (wall_color, wall_color, wall_color),
                     (
                         int(w + idx * SCALE),
                         int((h / 2) - wall_height / 2),
-                        int(SCALE),
-                        int(wall_height),
+                        SCALE,
+                        wall_height,
                     ),
                 )
         pygame.display.flip()
