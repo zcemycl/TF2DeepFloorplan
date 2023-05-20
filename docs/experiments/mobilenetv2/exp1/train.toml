@@ -1,0 +1,13 @@
+tfmodel = 'func'
+batchsize = 8
+lr = 1e-4
+wd = 1e-5
+epochs = 100
+logdir = 'log/store_mobilenetv2_exp1'
+modeldir = 'model/store_mobilenetv2_exp1'
+weight = ''
+save_tensor_interval = 10
+save_model_interval = 20
+feature_channels = [256, 128, 64, 32]
+backbone = 'mobilenetv2'
+feature_names = ["block_1_expand_relu", "block_3_expand_relu", "block_5_expand_relu", "block_13_expand_relu", "out_relu",]

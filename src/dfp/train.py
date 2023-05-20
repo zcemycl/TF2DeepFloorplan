@@ -18,6 +18,7 @@ from .data import (
 from .loss import balanced_entropy, cross_two_tasks_weight
 from .net import deepfloorplanModel
 from .net_func import deepfloorplanFunc
+from .utils.settings import overwrite_args_with_toml
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -27,9 +28,9 @@ def init(
 ) -> Tuple[tf.data.Dataset, tf.keras.Model, tf.keras.optimizers.Optimizer]:
     dataset = loadDataset()
     if config.tfmodel == "subclass":
-        model = deepfloorplanModel()
+        model = deepfloorplanModel(config=config)
     elif config.tfmodel == "func":
-        model = deepfloorplanFunc()
+        model = deepfloorplanFunc(config=config)
     os.system(f"mkdir -p {config.modeldir}")
     if config.weight:
         model.load_weights(config.weight)
@@ -122,7 +123,7 @@ def main(config: argparse.Namespace):
             )
 
             # plot progress
-            if pltiter % config.saveTensorInterval == 0:
+            if pltiter % config.save_tensor_interval == 0:
                 f = image_grid(img, bound, room, logits_r, logits_cw)
                 im = plot_to_image(f)
                 with writer.as_default():
@@ -134,7 +135,7 @@ def main(config: argparse.Namespace):
             pltiter += 1
 
         # save model
-        if epoch % config.saveModelInterval == 0:
+        if epoch % config.save_model_interval == 0:
             model.save_weights(config.logdir + "/G")
             model.save(config.modeldir)
             print("[INFO] Saving Model ...")
@@ -152,12 +153,40 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     p.add_argument("--logdir", type=str, default="log/store")
     p.add_argument("--modeldir", type=str, default="model/store")
     p.add_argument("--weight", type=str)
-    p.add_argument("--saveTensorInterval", type=int, default=10)
-    p.add_argument("--saveModelInterval", type=int, default=20)
+    p.add_argument("--save-tensor-interval", type=int, default=10)
+    p.add_argument("--save-model-interval", type=int, default=20)
+    p.add_argument("--tomlfile", type=str, default=None)
+    p.add_argument(
+        "--feature-channels",
+        type=int,
+        action="store",
+        default=[256, 128, 64, 32],
+        nargs=4,
+    )
+    p.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet50", "mobilenetv1", "mobilenetv2"],
+    )
+    p.add_argument(
+        "--feature-names",
+        type=str,
+        action="store",
+        nargs=5,
+        default=[
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ],
+    )
     return p.parse_args(args)
 
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    args = overwrite_args_with_toml(args)
     print(args)
     main(args)

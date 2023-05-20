@@ -1,0 +1,13 @@
+tfmodel = 'func'
+batchsize = 8
+lr = 1e-4
+wd = 1e-5
+epochs = 100
+logdir = 'log/store_vgg16_exp3'
+modeldir = 'model/store_vgg16_exp3'
+weight = ''
+save_tensor_interval = 10
+save_model_interval = 20
+feature_channels = [256, 128, 64, 32]
+backbone = 'vgg16'
+feature_names = ["block1_pool", "block2_pool", "block3_pool", "block4_pool", "block5_pool",]
