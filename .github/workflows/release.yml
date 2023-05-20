@@ -33,6 +33,10 @@ jobs:
           pip install -e .[tfcpu,api]
           python setup.py sdist bdist_wheel
           
+      # - name: Publish distribution 📦 to PyPI
+      #   uses: pypa/gh-action-pypi-publish@master
+      #   with:
+      #     password: ${{ secrets.PYPI_API_TOKEN }}
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -40,8 +44,3 @@ jobs:
           files: |
             ./dist/*tar.gz
             ./dist/*.whl
-
-      # - name: Publish distribution 📦 to PyPI
-      #   uses: pypa/gh-action-pypi-publish@master
-      #   with:
-      #     password: ${{ secrets.PYPI_API_TOKEN }}
