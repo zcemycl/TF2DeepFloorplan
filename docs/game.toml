@@ -1,0 +1,10 @@
+tfmodel = 'subclass'
+image = ''
+postprocess = 1
+colorize = 0
+save = ''
+weight = 'model/store_vgg16_exp2_model.tflite'
+loadmethod = 'tflite'
+feature_channels = [32, 32, 32, 32]
+backbone = 'vgg16'
+feature_names = ["block1_pool", "block2_pool", "block3_pool", "block4_pool", "block5_pool",]
