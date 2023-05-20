@@ -18,7 +18,8 @@ RUN pip install -e .[tfgpu,api]
 # RUN gdown https://drive.google.com/uc?id=1czUSFvk6Z49H-zRikTc67g2HUUz4imON
 # RUN unzip log.zip
 # RUN rm log.zip
-ADD log log
+COPY docs/app.toml /docs/app.toml
+ADD log/store log/store
 
 COPY resources /usr/local/resources
 RUN mv /usr/local/resources .

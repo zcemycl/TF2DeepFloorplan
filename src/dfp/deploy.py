@@ -17,6 +17,7 @@ from .utils.rgb_ind_convertor import (
     floorplan_fuse_map,
     ind2rgb,
 )
+from .utils.settings import overwrite_args_with_toml
 from .utils.util import fill_break_line, flood_fill, refine_room_region
 
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
@@ -26,9 +27,9 @@ def init(
     config: argparse.Namespace,
 ) -> Tuple[tf.keras.Model, tf.Tensor, np.ndarray]:
     if config.tfmodel == "subclass":
-        model = deepfloorplanModel()
+        model = deepfloorplanModel(config=config)
     elif config.tfmodel == "func":
-        model = deepfloorplanFunc()
+        model = deepfloorplanFunc(config=config)
     if config.loadmethod == "log":
         model.load_weights(config.weight)
     elif config.loadmethod == "pb":
@@ -36,12 +37,14 @@ def init(
     elif config.loadmethod == "tflite":
         model = tf.lite.Interpreter(model_path=config.weight)
         model.allocate_tensors()
-    img = mpimg.imread(config.image)
+    img = mpimg.imread(config.image)[:, :, :3]
     shp = img.shape
     img = tf.convert_to_tensor(img, dtype=tf.uint8)
     img = tf.image.resize(img, [512, 512])
     img = tf.cast(img, dtype=tf.float32)
-    img = tf.reshape(img, [-1, 512, 512, 3]) / 255
+    img = tf.reshape(img, [-1, 512, 512, 3])
+    if tf.math.reduce_max(img) > 1.0:
+        img /= 255
     if config.loadmethod == "tflite":
         return model, img, shp
     model.trainable = False
@@ -196,6 +199,33 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         choices=["log", "tflite", "pb", "none"],
     )  # log,tflite,pb
     p.add_argument("--save", type=str)
+    p.add_argument(
+        "--feature-channels",
+        type=int,
+        action="store",
+        default=[256, 128, 64, 32],
+        nargs=4,
+    )
+    p.add_argument(
+        "--backbone",
+        type=str,
+        default="vgg16",
+        choices=["vgg16", "resnet50", "mobilenetv1", "mobilenetv2"],
+    )
+    p.add_argument(
+        "--feature-names",
+        type=str,
+        action="store",
+        nargs=5,
+        default=[
+            "block1_pool",
+            "block2_pool",
+            "block3_pool",
+            "block4_pool",
+            "block5_pool",
+        ],
+    )
+    p.add_argument("--tomlfile", type=str, default=None)
     return p.parse_args(args)
 
 
@@ -209,6 +239,7 @@ def deploy_plot_res(result: np.ndarray):
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])
+    args = overwrite_args_with_toml(args)
     result = main(args)
     deploy_plot_res(result)
     plt.show()

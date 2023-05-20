@@ -1,3 +1,4 @@
+import argparse
 from typing import Tuple
 
 import numpy as np
@@ -18,84 +19,64 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.models import Model
 
 
-def resnet50_backbone(x):
-    layer_names = [
-        "conv1_relu",  # 256x256x64
-        "conv2_block3_out",  # 128x128x256
-        "conv3_block4_out",  # 64x64x512
-        "conv4_block6_out",  # 32x32x1024
-        "conv5_block3_out",  # 16x16x2048
-    ]
+def resnet50_backbone(x, feature_names):
     backbone = ResNet50(weights="imagenet", include_top=False, input_tensor=x)
     backbone = Model(
-        inputs=x, outputs=backbone.get_layer(layer_names[-1]).output
+        inputs=x, outputs=backbone.get_layer(feature_names[-1]).output
     )
     for layer in backbone.layers:
         layer.trainable = False
 
     features = []
-    for layer in backbone.layers:
-        if layer.name in layer_names:
-            features.append(backbone.get_layer(layer.name).output)
+    for layer in feature_names:
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
 
-def mobilenet_backbone(x):
-    layer_names = [
-        "conv_pw_1_relu",  # 256x256x64
-        "conv_pw_3_relu",  # 128x128x128
-        "conv_pw_5_relu",  # 64x64x256
-        "conv_pw_7_relu",  # 32x32x512
-        # "conv_pw_13_relu",  # 16x16x1024
-        "conv_pw_12_relu",  # 16x16x1024
-    ]
+def mobilenet_backbone(x, feature_names):
     backbone = MobileNet(weights="imagenet", include_top=False, input_tensor=x)
     backbone = Model(
-        inputs=x, outputs=backbone.get_layer(layer_names[-1]).output
+        inputs=x, outputs=backbone.get_layer(feature_names[-1]).output
     )
     for layer in backbone.layers:
         layer.trainable = False
 
     features = []
-    for layer in backbone.layers:
-        if layer.name in layer_names:
-            features.append(backbone.get_layer(layer.name).output)
+    for layer in feature_names:
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
 
-def mobilenetv2_backbone(x):
-    layer_names = [
-        "block_1_expand_relu",  # 256x256x96
-        "block_3_expand_relu",  # 128x128x144
-        "block_5_expand_relu",  # 64x64x192
-        "block_13_expand_relu",  # 32x32x576
-        "out_relu",  # 16x16x1280
-    ]
+def mobilenetv2_backbone(x, feature_names):
     backbone = MobileNetV2(
         weights="imagenet", include_top=False, input_tensor=x
     )
+    backbone = Model(
+        inputs=x, outputs=backbone.get_layer(feature_names[-1]).output
+    )
     for layer in backbone.layers:
         layer.trainable = False
 
     features = []
-    for layer in backbone.layers:
-        if layer.name in layer_names:
-            features.append(backbone.get_layer(layer.name).output)
+    for layer in feature_names:
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
 
-def vgg16_backbone(x):
+def vgg16_backbone(x, feature_names):
     backbone = VGG16(weights="imagenet", include_top=False, input_tensor=x)
+    backbone = Model(
+        inputs=x, outputs=backbone.get_layer(feature_names[-1]).output
+    )
     for layer in backbone.layers:
         layer.trainable = False
 
     features = []
-    for layer in backbone.layers:
-        if layer.name.find("pool") != -1:
-            features.append(backbone.get_layer(layer.name).output)
+    for layer in feature_names:
+        features.append(backbone.get_layer(layer).output)
     features = features[::-1]
     return features
 
@@ -175,14 +156,33 @@ def attention(xf, x_, rbdim):
     return non_local_context(xf, x_, rbdim)
 
 
-def deepfloorplanFunc():
+def deepfloorplanFunc(config: argparse.Namespace = None):
     inp = Input([512, 512, 3])
-    features = vgg16_backbone(inp)
-    # features = resnet50_backbone(inp)
+    if config is None:
+        rbdims = [256, 128, 64, 32]
+        features = vgg16_backbone(
+            inp,
+            [
+                "block1_pool",
+                "block2_pool",
+                "block3_pool",
+                "block4_pool",
+                "block5_pool",
+            ],
+        )
+    elif config is not None:
+        rbdims = config.feature_channels
+        if config.backbone == "resnet50":
+            features = resnet50_backbone(inp, config.feature_names)
+        elif config.backbone == "vgg16":
+            features = vgg16_backbone(inp, config.feature_names)
+        elif config.backbone == "mobilenetv1":
+            features = mobilenet_backbone(inp, config.feature_names)
+        elif config.backbone == "mobilenetv2":
+            features = mobilenetv2_backbone(inp, config.feature_names)
+    assert len(features) == 5, "Not enough 5 features..."
 
     features_room_boundary = []
-    # rbdims = [256, 128, 64, 32]
-    rbdims = [128, 64, 32, 16]
     x = features[0]
     for i in range(len(rbdims)):
         x = Conv2DTranspose(rbdims[i], 4, strides=2, padding="same")(x)
