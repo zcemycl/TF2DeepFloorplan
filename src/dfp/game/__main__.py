@@ -17,7 +17,10 @@ logging.basicConfig(level=logging.INFO)
 
 args = Namespace(tomlfile="docs/game.toml")
 args = overwrite_args_with_toml(args)
-finname = "resources/30939153.jpg"
+# finname = "resources/30939153.jpg"
+finname = "resources/example4.png"
+# finname = "resources/example5.jpg"
+# finname = "resources/123.jpg"
 FOV = math.pi / 3
 HALF_FOV = FOV / 2
 CASTED_RAYS = 150
