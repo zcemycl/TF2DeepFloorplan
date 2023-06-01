@@ -4,7 +4,7 @@ import random
 import sys
 import time
 from argparse import Namespace
-from typing import Dict, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pygame
@@ -14,87 +14,6 @@ from ..deploy import main
 from ..utils.settings import overwrite_args_with_toml
 
 logging.basicConfig(level=logging.INFO)
-
-args = Namespace(tomlfile="docs/game.toml")
-args = overwrite_args_with_toml(args)
-FOV = math.pi / 3
-HALF_FOV = FOV / 2
-STEP_ANGLE = FOV / args.casted_rays
-
-
-def draw_dfp(map: np.ndarray, win: pygame.Surface):
-    surf = pygame.surfarray.make_surface(bg)
-    win.blit(surf, (0, 0))
-
-
-def show_fps(win: pygame.Surface, clock: pygame.time.Clock):
-    font = pygame.font.SysFont("Arial", 18)
-    fps = str(int(clock.get_fps()))
-    fps_text = font.render(fps, 1, pygame.Color("coral"))
-    win.blit(fps_text, (10, 0))
-
-
-def player_control(
-    keys: Dict[int, bool],
-    angle: float,
-    x: float,
-    y: float,
-    w: int,
-    h: int,
-    binary_map: np.ndarray,
-) -> Tuple[float, float, float]:
-    dangle = 0.01
-    dpos = 1
-    origx, origy = x, y
-    if keys[pygame.K_LEFT]:
-        angle -= dangle
-    if keys[pygame.K_RIGHT]:
-        angle += dangle
-    if keys[pygame.K_w]:
-        x -= math.sin(angle) * dpos
-        y += math.cos(angle) * dpos
-    if keys[pygame.K_s]:
-        x += math.sin(angle) * dpos
-        y -= math.cos(angle) * dpos
-    if keys[pygame.K_d]:
-        x += math.sin(angle - math.pi / 2) * dpos
-        y -= math.cos(angle - math.pi / 2) * dpos
-    if keys[pygame.K_a]:
-        x -= math.sin(angle - math.pi / 2) * dpos
-        y += math.cos(angle - math.pi / 2) * dpos
-    if keys[pygame.K_q]:
-        pygame.quit()
-        sys.exit(0)
-    if x < 0:
-        x = 0
-    if x >= w:
-        x = w - 1
-    if y < 0:
-        y = 0
-    if y >= h:
-        y = h - 1
-    if binary_map[int(y), int(x)] == 1:
-        return angle, origx, origy
-    return angle, x, y
-
-
-def draw_player_direction(
-    x: float,
-    y: float,
-    angle: float,
-    depth: Union[float, int],
-    win: pygame.Surface,
-):
-    pygame.draw.line(
-        win,
-        (0, 255, 0),
-        (x, y),
-        (
-            x - math.sin(angle) * depth,
-            y + math.cos(angle) * depth,
-        ),
-        3,
-    )
 
 
 @njit
@@ -158,104 +77,191 @@ def ray_cast_dda(
 
 
 @jit(nopython=True)
-def foo(x, y, angle, depth, w, h, binary_map, STEP_ANGLE, CASTED_RAYS):
+def loop_rays(x, y, angle, depth, w, h, binary_map, STEP_ANGLE, CASTED_RAYS):
     return [
         ray_cast_dda(x, y, angle + i * STEP_ANGLE, depth, w, h, binary_map)
         for i in range(CASTED_RAYS)
     ]
 
 
-if __name__ == "__main__":
-    start = time.time()
-    result = main(args)
-    end = time.time()
-    logging.info(f"DFP takes {end-start} s to output map.")
-
-    h, w = result.shape
-    bg = rgb_im = np.zeros((h, w, 3))
-    bg[result != 10] = [200, 200, 200]
-    bg[result == 10] = [100, 100, 100]
-    result[result != 10] = 0
-    result[result == 10] = 1
-    bg = np.transpose(bg, (1, 0, 2))
-    SCREEN_HEIGHT = h
-    SCREEN_WIDTH = w * 2
+class Game:
+    FOV = math.pi / 3
+    HALF_FOV = FOV / 2
+    WALL_COLOR = [100, 100, 100]
+    FLOOR_COLOR = [200, 200, 200]
+    RAY_COLOR = (0, 255, 0)
     TILE_SIZE = 1
-    MAX_DEPTH = max(h, w)
-    SCALE = (SCREEN_WIDTH / 2) / args.casted_rays
+    dangle = 0.01
+    dpos = 1
+    GAME_TEXT_COLOR = pygame.Color("coral")
 
-    # pdb.set_trace()
-    posy, posx = np.where(result != 1)
-    posidx = random.randint(0, len(posy) - 1)
-    player_x, player_y = posx[posidx], posy[posidx]
-    player_angle = math.pi
-    start_angle = math.pi
-    # deploy_plot_res(result)
-    # plt.show()
-    pygame.init()
-    win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Deep Floorplan Raycasting")
+    def __init__(self, tomlfile: str = "docs/game.toml"):
+        self.tomlfile = tomlfile
+        args = Namespace(tomlfile=tomlfile)
+        self.args = overwrite_args_with_toml(args)
+        self.STEP_ANGLE = self.FOV / self.args.casted_rays
+        self._initialise_map()
+        self._initialise_player_pose()
+        self._initialise_game_engine()
 
-    clock = pygame.time.Clock()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit(0)
+    def _initialise_map(self):
+        start = time.time()
+        self.result = main(self.args)
+        end = time.time()
+        logging.info(f"DFP takes {end-start} s to output map.")
+        self.h, self.w = self.result.shape
+        self.bg = self.rgb_im = np.zeros((self.h, self.w, 3))
+        self.bg[self.result != 10] = self.FLOOR_COLOR
+        self.bg[self.result == 10] = self.WALL_COLOR
+        self.result[self.result != 10] = 0
+        self.result[self.result == 10] = 1
+        self.bg = np.transpose(self.bg, (1, 0, 2))
+        self.MAX_DEPTH = max(self.h, self.w)
+        self.SCREEN_HEIGHT = self.h
+        self.SCREEN_WIDTH = self.w * 2
+        self.SCALE = (self.SCREEN_WIDTH / 2) / self.args.casted_rays
+        self.surf = pygame.surfarray.make_surface(self.bg)
 
-        # 3d
-        pygame.draw.rect(win, (100, 100, 100), (w, h / 2, w, h))
-        pygame.draw.rect(win, (0, 150, 200), (w, -h / 2, w, h))
+    def _initialise_player_pose(self):
+        posy, posx = np.where(self.result != 1)
+        posidx = random.randint(0, len(posy) - 1)
+        self.player_x, self.player_y = posx[posidx], posy[posidx]
+        self.player_angle = math.pi
 
+    def _initialise_game_engine(self):
+        pygame.init()
+        self.win = pygame.display.set_mode(
+            (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+        )
+        pygame.display.set_caption("Deep Floorplan Raycasting")
+        self.clock = pygame.time.Clock()
+
+    def draw_dfp(self):
+        self.win.blit(self.surf, (0, 0))
+
+    def show_fps(self):
+        font = pygame.font.SysFont("Arial", 18)
+        fps = str(int(self.clock.get_fps()))
+        fps_text = font.render(fps, 1, self.GAME_TEXT_COLOR)
+        self.win.blit(fps_text, (10, 0))
+
+    def player_control(self):
         keys = pygame.key.get_pressed()
-        # control
-        player_angle, player_x, player_y = player_control(
-            keys, player_angle, player_x, player_y, w, h, result
+        angle, x, y = self.player_angle, self.player_x, self.player_y
+        origx, origy = x, y
+        if keys[pygame.K_LEFT]:
+            angle -= self.dangle
+        if keys[pygame.K_RIGHT]:
+            angle += self.dangle
+        if keys[pygame.K_w]:
+            x -= math.sin(angle) * self.dpos
+            y += math.cos(angle) * self.dpos
+        if keys[pygame.K_s]:
+            x += math.sin(angle) * self.dpos
+            y -= math.cos(angle) * self.dpos
+        if keys[pygame.K_d]:
+            x += math.sin(angle - math.pi / 2) * self.dpos
+            y -= math.cos(angle - math.pi / 2) * self.dpos
+        if keys[pygame.K_a]:
+            x -= math.sin(angle - math.pi / 2) * self.dpos
+            y += math.cos(angle - math.pi / 2) * self.dpos
+        if keys[pygame.K_q]:
+            pygame.quit()
+            sys.exit(0)
+        if x < 0:
+            x = 0
+        if x >= self.w:
+            x = self.w - 1
+        if y < 0:
+            y = 0
+        if y >= self.h:
+            y = self.h - 1
+        if self.result[int(y), int(x)] == 1:
+            self.player_angle, self.player_x, self.player_y = (
+                angle,
+                origx,
+                origy,
+            )
+            return
+        self.player_angle, self.player_x, self.player_y = angle, x, y
+
+    def draw_player_rays(
+        self,
+        angle: float,
+        depth: Union[float, int],
+    ):
+        pygame.draw.line(
+            self.win,
+            self.RAY_COLOR,
+            (self.player_x, self.player_y),
+            (
+                self.player_x - math.sin(angle) * depth,
+                self.player_y + math.cos(angle) * depth,
+            ),
+            3,
         )
 
-        # draw_map(result, win, TILE_SIZE, TILE_SIZE)
-        # draw floorplan
-        draw_dfp(bg, win)
+    def run(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit(0)
 
-        # draw fps
-        show_fps(win, clock)
+            # 3d background
+            pygame.draw.rect(
+                self.win, (100, 100, 100), (self.w, self.h / 2, self.w, self.h)
+            )
+            pygame.draw.rect(
+                self.win, (0, 150, 200), (self.w, -self.h / 2, self.w, self.h)
+            )
 
-        # draw player
-        pygame.draw.circle(win, (255, 0, 0), (player_x, player_y), 8)
+            self.player_control()
+            self.draw_dfp()
+            self.show_fps()
 
-        # # draw player direction
-        wallangles = foo(
-            player_x,
-            player_y,
-            player_angle - HALF_FOV,
-            MAX_DEPTH,
-            w,
-            h,
-            result,
-            STEP_ANGLE,
-            args.casted_rays,
-        )
+            # draw player
+            pygame.draw.circle(
+                self.win, (255, 0, 0), (self.player_x, self.player_y), 8
+            )
 
-        for idx, (angle, fdist, iswall) in enumerate(wallangles):
-            draw_player_direction(player_x, player_y, angle, fdist, win)
-            wall_color = int(255 * (1 - (3 * fdist / MAX_DEPTH) ** 2))
-            wall_color = max(min(wall_color, 255), 30)
-            fdist *= math.cos(player_angle - angle)
-            wall_height = 21000 / (fdist + 0.00001)
+            # calculate player rays
+            wallangles = loop_rays(
+                self.player_x,
+                self.player_y,
+                self.player_angle - self.HALF_FOV,
+                self.MAX_DEPTH,
+                self.w,
+                self.h,
+                self.result,
+                self.STEP_ANGLE,
+                self.args.casted_rays,
+            )
 
-            if iswall:
-                pygame.draw.rect(
-                    win,
-                    (wall_color, wall_color, wall_color),
-                    (
-                        int(w + idx * SCALE),
-                        int((h / 2) - wall_height / 2),
-                        SCALE,
-                        wall_height,
-                    ),
-                )
-        pygame.display.flip()
+            for idx, (angle, fdist, iswall) in enumerate(wallangles):
+                self.draw_player_rays(angle, fdist)
+                wall_color = int(255 * (1 - (3 * fdist / self.MAX_DEPTH) ** 2))
+                wall_color = max(min(wall_color, 255), 30)
+                fdist *= math.cos(self.player_angle - angle)
+                wall_height = 21000 / (fdist + 0.00001)
 
-        clock.tick()
+                if iswall:
+                    pygame.draw.rect(
+                        self.win,
+                        (wall_color, wall_color, wall_color),
+                        (
+                            int(self.w + idx * self.SCALE),
+                            int((self.h / 2) - wall_height / 2),
+                            self.SCALE,
+                            wall_height,
+                        ),
+                    )
+            pygame.display.flip()
 
-    pygame.quit()
+            self.clock.tick()
+        pygame.quit()
+
+
+if __name__ == "__main__":
+    env = Game()
+    env.run()
