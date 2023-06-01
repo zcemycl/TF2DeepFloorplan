@@ -147,3 +147,4 @@ cov.info
 lcov.info
 *.h5
 out.jpg
+.DS_Store
