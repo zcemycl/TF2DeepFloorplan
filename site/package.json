@@ -1,0 +1,11 @@
+{
+  "name": "tf2deepfloorplan-site",
+  "version": "1.0.0",
+  "description": "site for deep floorplan deployment",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Leo Leung",
+  "license": "ISC"
+}
