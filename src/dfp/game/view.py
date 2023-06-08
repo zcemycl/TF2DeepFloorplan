@@ -29,7 +29,7 @@ class View:
             self.win,
             self.model.PLAYER_COLOR,
             (self.model.player_x, self.model.player_y),
-            8,
+            self.model.PLAYER_SIZE,
         )
 
     def draw_player_rays(

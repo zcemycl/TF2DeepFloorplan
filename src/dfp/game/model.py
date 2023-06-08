@@ -4,6 +4,7 @@ from argparse import Namespace
 
 import numpy as np
 import pygame
+from PIL import Image
 
 from ..deploy import main
 from ..utils.settings import overwrite_args_with_toml
@@ -18,10 +19,12 @@ class Model:
     SKY_COLOR = (0, 150, 200)
     GRD_COLOR = (100, 100, 100)
     PLAYER_COLOR = (255, 0, 0)
+    PLAYER_SIZE = 8
     TILE_SIZE = 1
     dangle = 0.01
-    dpos = 1
+    dpos = 0.1
     GAME_TEXT_COLOR = pygame.Color("coral")
+    MAX_SIZE = 480
     # surf = None
 
     def __init__(self, tomlfile: str = "docs/game.toml"):
@@ -34,6 +37,7 @@ class Model:
 
     def _initialise_map(self):
         self.result = main(self.args)
+        self.rescale_image()
         self.h, self.w = self.result.shape
         self.bg = self.rgb_im = np.zeros((self.h, self.w, 3))
         self.bg[self.result != 10] = self.FLOOR_COLOR
@@ -47,8 +51,27 @@ class Model:
         self.SCALE = (self.SCREEN_WIDTH / 2) / self.args.casted_rays
         self.surf = pygame.surfarray.make_surface(self.bg)
 
+    def rescale_image(self):
+        self.h, self.w = self.result.shape
+        max_side = max(self.h, self.w)
+        scale_factor = self.MAX_SIZE / max_side
+        tmpimg = Image.fromarray(self.result)
+        if self.h > self.w:
+            new_shp = (
+                int(scale_factor * self.w),
+                self.MAX_SIZE,
+            )
+        else:
+            new_shp = (
+                self.MAX_SIZE,
+                int(scale_factor * self.h),
+            )
+        tmpimg = tmpimg.resize(new_shp, resample=Image.NEAREST)
+        self.result = np.asarray(tmpimg).copy()
+
     def _initialise_player_pose(self):
         posy, posx = np.where(self.result != 1)
         posidx = random.randint(0, len(posy) - 1)
         self.player_x, self.player_y = posx[posidx], posy[posidx]
         self.player_angle = math.pi
+        self.dpos = 20 * self.PLAYER_SIZE / self.MAX_DEPTH
