@@ -12,6 +12,9 @@ class Controller:
 
     def player_control(self):
         keys = pygame.key.get_pressed()
+        if True in keys:
+            self.model.auto_navigate = False
+        state = pygame.mouse.get_pressed()
         angle, x, y = (
             self.model.player_angle,
             self.model.player_x,
@@ -37,6 +40,16 @@ class Controller:
         if keys[pygame.K_q]:
             pygame.quit()
             sys.exit(0)
+        if state[0]:
+            if not self.model.auto_navigate:
+                self.model.auto_navigate = True
+                destination_pos = pygame.mouse.get_pos()
+                if (
+                    destination_pos[0] <= self.model.result.shape[1]
+                    and destination_pos[1] <= self.model.result.shape[0]
+                ):
+                    self.model.goal = destination_pos  # x,y
+                    print(self.model.result.shape, destination_pos)
         if x < 0:
             x = 0
         if x >= self.model.w:

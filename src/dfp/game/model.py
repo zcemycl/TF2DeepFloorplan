@@ -25,6 +25,7 @@ class Model:
     dpos = 0.1
     GAME_TEXT_COLOR = pygame.Color("coral")
     MAX_SIZE = 480
+    auto_navigate = False
     # surf = None
 
     def __init__(self, tomlfile: str = "docs/game.toml"):
