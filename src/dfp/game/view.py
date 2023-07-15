@@ -18,6 +18,8 @@ class View:
 
     def draw_dfp(self):
         self.win.blit(self.model.surf, (0, 0))
+        if self.model.auto_navigate and self.model.navigate_surf:
+            self.win.blit(self.model.navigate_surf, (0, 0))
 
     def show_fps(self, fps: str):
         font = pygame.font.SysFont("Arial", 18)
