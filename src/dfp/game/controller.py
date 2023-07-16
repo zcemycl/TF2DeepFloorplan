@@ -14,21 +14,52 @@ class Controller:
         self.get_repulsive_field()
 
     def get_repulsive_field(self):
-        d = distance_transform_edt(1 - self.model.result)
-        d2 = d / 500 + 1
-        self.navigate_repulsive_field = self.model.nu_auto_navigate * (
-            (1 / d2 - 1 / self.model.d0_auto_navigate) ** 2
+        tmp_result = self.model.result.copy()
+        tmp_result[0, :] = 1
+        tmp_result[-1, :] = 1
+        tmp_result[:, 0] = 1
+        tmp_result[:, -1] = 1
+        self.navigate_repulsive_field = distance_transform_edt(1 - tmp_result)
+        self.navigate_repulsive_field /= np.max(self.navigate_repulsive_field)
+        self.navigate_repulsive_field = 1 / (
+            self.navigate_repulsive_field**2 + 0.1
         )
-        self.navigate_repulsive_field[d2 > self.model.d0_auto_navigate] = 0
+        self.navigate_repulsive_field *= self.model.nu_auto_navigate
 
     def get_attractive_field(self):
         h, w = self.model.result.shape
         self.x, self.y = np.meshgrid(
             np.linspace(1, w, w), np.linspace(1, h, h)
         )
-        self.navigate_attractive_field = self.model.xi_auto_navigate * (
+        self.navigate_attractive_field = 10 * (
             (self.x - self.model.goal[0]) ** 2
             + (self.y - self.model.goal[1]) ** 2
+        )
+        self.navigate_attractive_field += (
+            self.x - self.model.player_x
+        ) ** 2 + (self.y - self.model.player_y) ** 2
+        self.navigate_attractive_field /= np.max(
+            self.navigate_attractive_field
+        )
+        self.navigate_attractive_field *= self.model.xi_auto_navigate
+
+    def get_navigate_field(self):
+        self.model.navigate_field = np.transpose(
+            self.navigate_attractive_field + self.navigate_repulsive_field,
+            (1, 0),
+        )
+        # self.model.navigate_field = np.transpose(
+        #     self.navigate_attractive_field,
+        #     (1, 0),
+        # )
+        # self.model.navigate_field = np.transpose(
+        #     + self.navigate_repulsive_field,
+        #     (1, 0),
+        # )
+        self.model.navigate_field /= np.max(self.model.navigate_field)
+        self.model.navigate_field *= 255
+        self.model.navigate_field = np.tile(
+            np.expand_dims(self.model.navigate_field, axis=2), (1, 1, 3)
         )
 
     def player_control(self):
@@ -73,19 +104,7 @@ class Controller:
                     self.model.goal = destination_pos  # x,y
                     # get new navigation map
                     self.get_attractive_field()
-                    self.model.navigate_field = np.transpose(
-                        self.navigate_attractive_field
-                        + self.navigate_repulsive_field,
-                        (1, 0),
-                    )
-                    # print(self.navigate_attractive_field.shape,
-                    #     self.navigate_repulsive_field.shape)
-                    # self.model.navigate_field = np.transpose(
-                    #     self.navigate_attractive_field, (1, 0)
-                    # )
-                    # self.model.navigate_field = np.transpose(
-                    #     self.navigate_repulsive_field, (1, 0)
-                    # )
+                    self.get_navigate_field()
                     self.model.navigate_surf = pygame.surfarray.make_surface(
                         self.model.navigate_field
                     ).convert_alpha()

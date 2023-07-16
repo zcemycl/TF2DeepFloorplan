@@ -27,9 +27,9 @@ class Model:
     MAX_SIZE = 480
     auto_navigate = False
     goal = (0, 0)
-    nu_auto_navigate = 800
+    nu_auto_navigate = 2000  # repulsive
     d0_auto_navigate = 2
-    xi_auto_navigate = 1 / 200
+    xi_auto_navigate = 5000  # attractive
     navigate_field = None
     navigate_surf = None
     # surf = None
