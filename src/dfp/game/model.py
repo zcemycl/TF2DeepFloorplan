@@ -26,6 +26,8 @@ class Model:
     GAME_TEXT_COLOR = pygame.Color("coral")
     MAX_SIZE = 480
     auto_navigate = False
+    find_route = False
+    display_route = False
     goal = (0, 0)
     nu_auto_navigate = 2000  # repulsive
     d0_auto_navigate = 2

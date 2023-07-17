@@ -31,13 +31,19 @@ class Controller:
         self.x, self.y = np.meshgrid(
             np.linspace(1, w, w), np.linspace(1, h, h)
         )
-        self.navigate_attractive_field = 10 * (
-            (self.x - self.model.goal[0]) ** 2
-            + (self.y - self.model.goal[1]) ** 2
+        attract_to_target = (self.x - self.model.goal[0]) ** 2 + (
+            self.y - self.model.goal[1]
+        ) ** 2
+        attract_to_target /= np.max(attract_to_target)
+        reject_away_start = -np.sqrt(
+            (self.x - self.model.player_x) ** 2
+            + (self.y - self.model.player_y) ** 2
         )
-        self.navigate_attractive_field += (
-            self.x - self.model.player_x
-        ) ** 2 + (self.y - self.model.player_y) ** 2
+        reject_away_start -= np.min(reject_away_start)
+        reject_away_start /= np.max(reject_away_start)
+        self.navigate_attractive_field = (
+            100 * attract_to_target + reject_away_start
+        )
         self.navigate_attractive_field /= np.max(
             self.navigate_attractive_field
         )
@@ -108,6 +114,7 @@ class Controller:
                     self.model.navigate_surf = pygame.surfarray.make_surface(
                         self.model.navigate_field
                     ).convert_alpha()
+                    self.model.find_route = False
 
                 self.model.goal = destination_pos  # x,y
         if x < 0:

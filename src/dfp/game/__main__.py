@@ -4,6 +4,7 @@ import sys
 import time
 from typing import Tuple, Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pygame
 from numba import jit, njit
@@ -93,6 +94,14 @@ class Game:
         self.view = View(self.model).register_window(self.win)
         self.control = Controller(self.model)
 
+        self.statemap = np.zeros(self.model.result.shape[:2])
+        self.statemap[self.model.result == 0] = 1
+        self.statemap[self.model.result == 1] = 2
+        self.statemap[int(self.model.player_y), int(self.model.player_x)] = 5
+        self.statemap_color = np.zeros(
+            (self.model.result.shape[0], self.model.result.shape[1], 3)
+        )
+
     def _initialise_game_engine(self):
         pygame.init()
         self.win = pygame.display.set_mode(
@@ -101,7 +110,17 @@ class Game:
         pygame.display.set_caption("Deep Floorplan Raycasting")
         self.clock = pygame.time.Clock()
 
+    def colorise_routes(self):
+        self.statemap_color[self.statemap == 1] = (255, 255, 255)
+        self.statemap_color[self.statemap == 2] = (255, 255, 0)
+        self.statemap_color[self.statemap == 3] = (255, 0, 0)
+        self.statemap_color[self.statemap == 4] = (0, 0, 255)
+        self.statemap_color[self.statemap == 5] = (0, 255, 0)
+        self.statemap_color[self.statemap == 6] = (128, 129, 255)
+
     def run(self):
+        old_destination = self.model.goal
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -114,6 +133,77 @@ class Game:
             self.view.draw_dfp()
             self.view.show_fps(str(int(self.clock.get_fps())))
             self.view.draw_player_loc()
+
+            # init route data
+            if (
+                self.model.auto_navigate
+                and not self.model.find_route
+                and old_destination != self.model.goal
+            ):
+                self.statemap[self.model.goal[1], self.model.goal[0]] = 6
+                self.parentArr = np.zeros(self.model.result.shape[:2])
+                h, w = self.model.result.shape
+                X, Y = np.meshgrid(
+                    np.linspace(0, h - 1, h), np.linspace(0, w - 1, w)
+                )
+                H = np.abs(X - self.model.goal[0]) + np.abs(
+                    Y - self.model.goal[1]
+                )
+                H = H.T
+                f = np.ones((h, w)) * np.inf
+                g = np.ones((h, w)) * np.inf
+                g[int(self.model.player_y), int(self.model.player_x)] = 0
+                f[int(self.model.player_y), int(self.model.player_x)] = H[
+                    int(self.model.player_y), int(self.model.player_x)
+                ]
+                numExpanded = 0
+                loc = np.array(
+                    [
+                        [int(self.model.player_y), self.model.goal[1]],
+                        [int(self.model.player_x), self.model.goal[0]],
+                    ]
+                )
+                st_node = np.ravel_multi_index(loc, (h, w))
+
+                old_destination = self.model.goal
+                self.model.display_route = True
+
+            if self.model.display_route and not self.model.find_route:
+                min_dist = np.amin(f.flatten())
+                current = np.argmin(f.flatten())
+                if (current == st_node[-1]) or np.isinf(min_dist):
+                    self.model.find_route = True
+                    plt.imshow(self.statemap)
+                    plt.show()
+
+                current_ind = np.unravel_index(current, (h, w))
+                self.statemap[current_ind] = 3
+                f[current_ind] = np.inf
+                numExpanded += 1
+
+                i = current_ind[0]
+                j = current_ind[1]
+                for jw in range(j - 1, j + 2, 2):
+                    if i >= 0 and i <= h - 1 and jw >= 0 and jw <= w - 1:
+                        if (self.statemap[i, jw] == 1) or (
+                            self.statemap[i, jw] == 6
+                        ):
+                            self.statemap[i, jw] = 4
+                            g[i, jw] = g[i, j] + 1
+                            f[i, jw] = g[i, j] + H[i, j]
+                            self.parentArr[i, jw] = current
+
+                for iw in range(i - 1, i + 2, 2):
+                    if iw >= 0 and iw <= h - 1 and j >= 0 and j <= w - 1:
+                        if (self.statemap[iw, j] == 1) or (
+                            self.statemap[iw, j] == 6
+                        ):
+                            self.statemap[iw, j] = 4
+                            g[iw, j] = g[i, j] + 1
+                            f[iw, j] = g[i, j] + H[i, j]
+                            self.parentArr[iw, j] = current
+
+                self.colorise_routes()
 
             # calculate player rays
             wallangles = loop_rays(
@@ -129,7 +219,8 @@ class Game:
             )
 
             for idx, (angle, fdist, iswall) in enumerate(wallangles):
-                self.view.draw_player_rays(angle, fdist)
+                if not self.model.auto_navigate:
+                    self.view.draw_player_rays(angle, fdist)
                 wall_color = int(
                     255 * (1 - (3 * fdist / self.model.MAX_DEPTH) ** 2)
                 )
@@ -139,6 +230,12 @@ class Game:
 
                 if iswall:
                     self.view.draw_3d_wall(idx, wall_color, wall_height)
+
+            if self.model.display_route and not self.model.find_route:
+                route_surf = pygame.surfarray.make_surface(
+                    np.transpose(self.statemap_color, (1, 0, 2))
+                )
+                self.win.blit(route_surf, (0, 0))
             pygame.display.flip()
 
             self.clock.tick()
